@@ -1,0 +1,9 @@
+* vampire board 
+
+** 3 sections / 4 elements
+
+- top PCB with window. dimensions: 128.5mm high, full width in middle is 12HP which we make 60.8
+
+- bolted with brass M2 schrauben to BACKPLATE 3mm perspex laser cut with indents and poti/knob holes
+
+- glued with TESTED acrifix/epoxyX/resin to cast resin half COFFIN // lower half is PARTS PCB
