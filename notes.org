@@ -1,0 +1,12 @@
+* xx
+
+PCB as vampire_panel and vampire_board
+
+- do panel as svg with knob (9mm) and jack (6.5mm) locations and export svg for inkscape
+
+- inkscape: backplate with boltholes 2mm, jacks etc and indents for
+  top coffin?// alt indents for square container // poss sides and
+  back for new cast coffin // poss sides and back indented for square
+  container...
+
+
