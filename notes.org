@@ -1,6 +1,14 @@
-* xx
+* 9/2/2016
 
-PCB as vampire_panel and vampire_board
+- electronics is vampire_board_001.brd
+- panel is vampire_panel.brd
+- perspex is vampire-brd_panel_stripped_forform.svg
+
+CHECK ALL AGAIN before ordering
+
+* older
+
+PCB as vampire_panel and vampire_board 
 
 - do panel as svg with knob (9mm) and jack (6.5mm) locations and export svg for inkscape
 
