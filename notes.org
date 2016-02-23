@@ -1,8 +1,18 @@
+* 22/2/2016
+
+- perspex fits okay but maybe slight mismatch in height of top/bott
+  part WITHOUT holes ->RECHECK/fix, check with PCB when arrives and
+  double up as much as possible...
+
+- match all sizes and make more precise after these tests
+
 * 9/2/2016
 
-- electronics is vampire_board_001.brd
-- panel is vampire_panel.brd
-- perspex is vampire-brd_panel_stripped_forform.svg
+- electronics is vampire_board_001.brd (35x48-004)
+
+- panel is vampire_panel.brd 60.9x128.5 (61x129 for pcbcart-003)
+
+- perspex is vampire-brd_panel_stripped_forform.svg (ordered as test from formulor)
 
 CHECK ALL AGAIN before ordering
 
