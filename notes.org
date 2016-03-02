@@ -1,3 +1,9 @@
+
+* 2/3
+
+- re-done precisely as vampire-brd_panel_new29feb.svg and doubled tiny circles removed 
+
+
 * 22/2/2016
 
 - perspex fits okay but maybe slight mismatch in height of top/bott
