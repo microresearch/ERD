@@ -232,7 +232,7 @@ void adc_init(void)
 	//	sbi(ADCSRA, ADPS0); // change speed here!
 
 	sbi(ADCSRA, ADEN);
-	//	sbi(ADCSRA, ADIE); // not needed
+	//sbi(ADCSRA, ADIE); // not needed
 	DDRC = 0x00;
 	PORTC = 0x00;
 }
@@ -1927,7 +1927,7 @@ break;
       instructionp+=biotadir[wormdir];
       break;
 	    ////////////////////////////CPUINTREV
-	  case 12: // TURM
+	  case 12: // TURMITE?
 	    instr=xxx[instructionp];
       machine_poke(instructionp,instr+m_reg8bit1);
       //delta = dmove[(instr - reg8bit1) & 0xf];

@@ -28,6 +28,7 @@ help:
 #-------------------
 erdsir.hex : erdsir.out 
 	$(OBJCOPY) -R .eeprom -O ihex erdsir.out erdsir.hex 
+#	$(OBJCOPY) -O ihex erdsir.out erdsir.hex 
 #erdsir.out : erdsir.o 
 #	$(CC) $(CFLAGS) -o erdsir.out -Wl,-Map,erdsir.map erdsir.o 
 erdsir.out : erdsir.o 
