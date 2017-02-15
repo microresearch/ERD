@@ -9,6 +9,9 @@ Returning the body, electronics, and dystopic code to the earth,
 revived and decoded years later as "yersinia pestis".
 
 ///////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+// SIR 2016 re-issue with some tweaks and new Turing Machine implementation.
+////////////////////////////////////////////////////////////////////////////
 
 LAYOUT:
 
@@ -1507,6 +1510,7 @@ unsigned char dirout(unsigned char* cells, unsigned char IP){
 void main(void)
 {
    unsigned char cpu, plague;
+   adc_init();
    srand(randi());
 
 #else
@@ -1559,7 +1563,6 @@ void main(int argc, char *argv[])
   }
   
 #ifdef AVR_IS
-  adc_init();
    DDRD=0x40; // 6 as out
    cli();//stop interrupts
    TCCR0A=(1<<COM0A1) | (1<<WGM01) | (1<<WGM00); // fast PWM
@@ -1581,7 +1584,7 @@ void main(int argc, char *argv[])
 #else
         cpuspeed=1;plaguespeed=1;speed=1;
 #endif
-	//	cpu=9;
+	cpu=14;
 
     // TESTING:
     //    plague=2;cpu=0;
