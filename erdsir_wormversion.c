@@ -10,39 +10,6 @@ revived and decoded years later as "yersinia pestis".
 
 ///////////////////////////////////////////////////////////////////////
 
-New version October 28 2016+
-
-1- is this the RIGHT old version - based on erdsir.c - TODO: check hex dump against this compiled
-
-NO they don't match with the one SIR we have dumped with avrdude - so code is
-wrong/different OR makefile is different OR avr-gcc version differs (4.7.2 on t60) - TEST how it sounds...
-
-or SIR we have HAD wrong code????
-
-CHECK this at home with x60 but assume this code is correct!
-
-___ 18/12/2016
-
-erdsir.c and hex matches x60 microbdinterp.c/hex (maybe just use this one and ignore hexdumps)
-
-////
-
-- updates TODO:
-
-2- latest mytm.c code in plague code replaces last mutate! 
-
-- do we have enough memory?
-
-- should it not be in CPUs?
-
-  void (*plag[])(unsigned char* cells) = {mutate,SIR,hodge,cel,life,inc,shift,chunk,runwire,runhodge,runfire,runkrum,runhodgenet,runlife,runcel,mutate};
-
-3- test plague set// CPUs on laptop
-
-4- worming in sin/cos lookup as movement options in plague TO SET - where?
-
-///////////////////////////////////////////////////////////////////////
-
 LAYOUT:
 
    0 // PLAGUE/CPU
@@ -70,7 +37,7 @@ LAYOUT:
 #define randi() (adcread(1)+adcread(5)) 
 #else
 #include <time.h>
-#define randi() (rand()%512)
+#define randi() (rand()%255)
 #endif
 
 typedef int u16;
@@ -141,7 +108,7 @@ unsigned char adcread(unsigned char channel){
 #else
 unsigned char adcread(unsigned char channel){
   unsigned char result, high;
-  if (channel==0 || channel==7) result=rand()%255;
+  if (channel==0 ||channel==1 || channel==7) result=rand()%255;
   else result=10;
   return result;
 }
@@ -257,14 +224,14 @@ void initcell(unsigned char* cells){
   }
 }
 
-//void (*filtermod[])(unsigned int cel) = {leftsh, rightsh, mult, divvv};  
-
 void mutate(unsigned char* cells){
   unsigned char x,y;
-  for (y=0;y<cells[0];y++){
+  for (y=0;y<cells[0]+1;y++){// try this?
     x=randi();
-    cells[x]^=(trand&0x0f);
-    //  cells[x]^=(trand);
+    //    printf("plague %d %d    ", x,cells[0]);
+
+        cells[x]^=(trand&0x0f);
+    //      cells[x]^=(trand);
   //    printf("%d xxx:%d\n",y, cells[x]);
   }
 }
@@ -272,7 +239,7 @@ void mutate(unsigned char* cells){
 void inc(unsigned char* cells){
   unsigned char x,y;
   x=randi();
-  for (y=0;y<cells[0];y++){
+  for (y=0;y<cells[0]+1;y++){
   cells[x++]++;
   }
 }
@@ -280,7 +247,7 @@ void inc(unsigned char* cells){
 void shift(unsigned char* cells){
   unsigned char x,y;
   x=randi();
-  for (y=0;y<cells[0];y++){
+  for (y=0;y<cells[0]+1;y++){
   cells[x++]=cells[x++];
   }
 }
@@ -288,7 +255,7 @@ void shift(unsigned char* cells){
 void chunk(unsigned char* cells){
   unsigned char x,y,tmp;
   x=randi();
-  for (y=0;y<cells[0];y++){
+  for (y=0;y<cells[0]+1;y++){
     tmp=cells[1] + ++x;
   cells[x]=cells[tmp];
   }
@@ -858,9 +825,11 @@ void SIR(unsigned char* cellies){
 
     if (flag==0) {
     cells=cellies; newcells=&cellies[MAX_SAM2];
+    //    printf("SWOP %d %d\n", cells[11], newcells[11]);
   }
   else {
     cells=&cellies[MAX_SAM2]; newcells=cellies;
+    //    printf("UN_SWOP %d %d\n", cells[11], newcells[11]);
     } 
 
   for (x=0;x<127;x++){
@@ -1624,7 +1593,7 @@ void main(int argc, char *argv[])
 	//        if ((counter%(1+cpuspeed))==0){ // ??? This is where we do speed!
 	  //	oldone=instructionp;// TESTY!!!!
 	  switch(cpu){
-	  case 0:
+	  case 14: // TM is now zero
 	    instruction=cells[instructionp];
 	    instructionp=(*instructionsetfirst[instruction%25]) (cells, instructionp); // mistake before as was instruction%INSTLEN in last instance
 	    //	    insdir=dir*(IP%16)+1; // prev mistake as just got exponentially larger
@@ -1640,7 +1609,7 @@ void main(int argc, char *argv[])
 	  case 2:
 	    instruction=cells[instructionp];
 	    instructionp=(*instructionsetbf[instruction%9]) (cells, instructionp);
-	    insdir=dir;
+	    insdir=dir;//NOt needed
 	    break;
 	  case 3:
 	    instruction=cells[instructionp];
@@ -1650,7 +1619,7 @@ void main(int argc, char *argv[])
 	  case 4:
 	    instruction=cells[instructionp];
 	    instructionp=(*instructionsetredcode[instruction%12]) (cells, instructionp); 
-	    insdir=dir;
+	    insdir=dir; //NOt needed
 	    break;
 	  case 5:
 	    cells[instructionp]=randi();
@@ -1933,7 +1902,7 @@ void main(int argc, char *argv[])
 	    instructionp+=biotadir[m_reg8bit1&7];
       break;
 	    ////////////////////////////CPUINTREV
-	  case 14: // LEAKY!
+	  case 0: // LEAKY! is now TM!
 	    /*	    instr=xxx[instructionp];
       if (thread_stack_count(16)) machine_poke(instructionp,thread_pop());
       else thread_push(machine_p88k(instructionp));
@@ -2143,7 +2112,7 @@ void main(int argc, char *argv[])
     OCR0A=255-modifier;
 #else
     //        printf("x: %d mod: %d\n",oldone, modifier);
-    printf("%c",modifier);
+       printf("%c",modifier);
 #endif
   }
   if (++othercounter>=plaguespeed){ //was instructionp%step
