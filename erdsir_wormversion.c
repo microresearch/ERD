@@ -64,7 +64,7 @@ typedef unsigned char u8;
 signed char insdir,dir; 
 unsigned char modifier,flaggy; 
 unsigned char xxx[MAX_SAM+12]; // for tm this is our tape
-unsigned char desc[64]; // read into desc from randi and check for bounds
+//unsigned char desc[64]; // read into desc from randi and check for bounds
 //unsigned char incom[255];
 signed char m_stack_pos;
 u8 m_stack[16];
@@ -229,7 +229,7 @@ void initcell(unsigned char* cells){
 
 void mutate(unsigned char* cells){
   unsigned char x,y;
-  for (y=0;y<cells[0]+1;y++){// try this?
+  for (y=0;y<cells[0];y++){// try this?
     x=randi();
     //    printf("plague %d %d    ", x,cells[0]);
 
@@ -242,7 +242,7 @@ void mutate(unsigned char* cells){
 void inc(unsigned char* cells){
   unsigned char x,y;
   x=randi();
-  for (y=0;y<cells[0]+1;y++){
+  for (y=0;y<cells[0];y++){
   cells[x++]++;
   }
 }
@@ -250,7 +250,7 @@ void inc(unsigned char* cells){
 void shift(unsigned char* cells){
   unsigned char x,y;
   x=randi();
-  for (y=0;y<cells[0]+1;y++){
+  for (y=0;y<cells[0];y++){
   cells[x++]=cells[x++];
   }
 }
@@ -258,7 +258,7 @@ void shift(unsigned char* cells){
 void chunk(unsigned char* cells){
   unsigned char x,y,tmp;
   x=randi();
-  for (y=0;y<cells[0]+1;y++){
+  for (y=0;y<cells[0];y++){
     tmp=cells[1] + ++x;
   cells[x]=cells[tmp];
   }
@@ -1300,7 +1300,7 @@ unsigned char SIRinfif(unsigned char* cells, unsigned char IP){
 
 // brainfuck
 
-signed char cycle; // was unsigned
+//signed char cycle; // was unsigned
 
 unsigned char bfinc(unsigned char* cells, unsigned char IP){
   omem++; 
@@ -1344,8 +1344,8 @@ unsigned char bfbrac1(unsigned char* cells, unsigned char IP){ // redo these
   if (cells[omem] == 0) {
     do {
       IP++;
-      if      (cells[IP]%9 == 6) bal++; // [
-      else if (cells[IP]%9 == 7) bal--; // ]
+      if      (cells[IP%255]%9 == 6) bal++; // [
+      else if (cells[IP%255]%9 == 7) bal--; // ]
       count++;
     } while ( bal != 0 && count<127 );
   }
@@ -1358,8 +1358,8 @@ unsigned char bfbrac2(unsigned char* cells, unsigned char IP){
   signed char bal = 0, count=0;
   if (cells[omem] =! 0) {
   do {
-    if      (cells[IP]%9 == 6) bal++; // [
-    else if (cells[IP]%9 == 7) bal--; // ]
+    if      (cells[IP%255]%9 == 6) bal++; // [
+    else if (cells[IP%255]%9 == 7) bal--; // ]
     IP--;
     count++;
   } while ( bal != 0 && count<127);
@@ -1559,7 +1559,7 @@ void main(int argc, char *argv[])
   dir=1;
   initcell(cells);
   for (tmp=0;tmp<64;tmp++){
-  desc[tmp]=randi();
+    //  desc[tmp]=randi();
   }
   
 #ifdef AVR_IS
@@ -1584,7 +1584,7 @@ void main(int argc, char *argv[])
 #else
         cpuspeed=1;plaguespeed=1;speed=1;
 #endif
-	cpu=14;
+	//	cpu=14;
 
     // TESTING:
     //    plague=2;cpu=0;
@@ -1905,14 +1905,14 @@ void main(int argc, char *argv[])
 	    instructionp+=biotadir[m_reg8bit1&7];
       break;
 	    ////////////////////////////CPUINTREV
-	  case 0: // LEAKY! is now TM!
-	    /*	    instr=xxx[instructionp];
+      
+	    	    instr=xxx[instructionp];
       if (thread_stack_count(16)) machine_poke(instructionp,thread_pop());
       else thread_push(machine_p88k(instructionp));
-      instructionp++;*/
+      instructionp++;
 
 	    // replaced with TM:
-	    desc[count++]=randi();
+      /*	    desc[count++]=randi();
 	    if (count==64) count=0;
 
 	    reader=(xxx[tc>>3]>>(tc&7)) &1;
@@ -1935,7 +1935,7 @@ void main(int argc, char *argv[])
 	    if (togo==0) tc-=1;
 	    else tc+=1;
 	    if (tc<0) tc=2048; // wrap on >>3
-	    if (tc>2048) tc=0;
+	    if (tc>2048) tc=0;*/
       break;
 	    ////////////////////////////CPUINTREV
 	  case 15: //Corewars again
