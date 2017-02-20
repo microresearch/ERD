@@ -15,9 +15,9 @@ revived and decoded years later as "yersinia pestis".
 
 LAYOUT:
 
-   0 // PLAGUE/CPU
-0 // INSTR
-   0 // SPEED
+   0 // PLAGUE/CPU ADC:X+2
+0 // INSTR ADC:X+1
+   0 // SPEED ADC: X+0
 
 0 0 0 // CPU/SPEED/INST
 
@@ -37,7 +37,7 @@ LAYOUT:
 #include <util/delay.h>
 #include <avr/sleep.h>
 #include <avr/wdt.h>
-#define randi() (adcread(1)+adcread(5)) 
+#define randi() (adcread(1)+adcread(5))  // INSTRUCTION
 #else
 #include <time.h>
 #define randi() (rand()%255)
@@ -1573,10 +1573,10 @@ void main(int argc, char *argv[])
   instructionp=0; insdir=1; dir=1; btdir=0; dcdir=0;
 
   while(1){
-    speed=(adcread(0)+adcread(3))<<4; // TESTING! - speed of both slowing!TODO! was <<2
+    speed=(adcread(0)+adcread(3))<<4; // TESTING! - speed of both slowing!TODO! was <<2 .. ??SPEED
     plaguespeed=speed>>2;//>>4; // 4 bits=16;
     cpuspeed=speed>>5;//&15; // should be logarithmic and longer
-    tmp=(adcread(2)+adcread(4)); // 8 bits
+    tmp=(adcread(2)+adcread(4)); // 8 bits // CPU and PLAGUE
 #ifdef AVR_IS
     cpu=tmp>>4; // 8 CPUs // 6 bits->8 CPUs=3bits - now 4 =16 CPUS TODO!
     plague=tmp&15;
