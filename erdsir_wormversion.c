@@ -64,7 +64,7 @@ typedef unsigned char u8;
 signed char insdir,dir; 
 unsigned char modifier,flaggy; 
 unsigned char xxx[MAX_SAM+12]; // for tm this is our tape
-//unsigned char desc[64]; // read into desc from randi and check for bounds
+unsigned char desc[64]; // read into desc from randi and check for bounds
 //unsigned char incom[255];
 signed char m_stack_pos;
 u8 m_stack[16];
@@ -1559,7 +1559,7 @@ void main(int argc, char *argv[])
   dir=1;
   initcell(cells);
   for (tmp=0;tmp<64;tmp++){
-    //  desc[tmp]=randi();
+    desc[tmp]=randi();
   }
   
 #ifdef AVR_IS
@@ -1582,12 +1582,10 @@ void main(int argc, char *argv[])
     plague=tmp&15;
     if (plague==0) plague=cells[instructionp]>>4; /// ????
 #else
-        cpuspeed=1;plaguespeed=1;speed=1;
+    cpuspeed=1;plaguespeed=1;speed=1;
 #endif
-	//	cpu=14;
-
     // TESTING:
-    //    plague=2;cpu=0;
+    //	cpu=0;
     
     // plague CPU!
     //    if (count%((IP%32)+1)==0){ // ??? This is where we do speed!
@@ -1904,15 +1902,15 @@ void main(int argc, char *argv[])
 	    m_reg8bit1=antrulee(m_reg8bit1,instr&7,machine_p88k(0));//last is rule
 	    instructionp+=biotadir[m_reg8bit1&7];
       break;
-	    ////////////////////////////CPUINTREV
-      
+	    ////////////////////////////TURING
+      /*      
 	    	    instr=xxx[instructionp];
       if (thread_stack_count(16)) machine_poke(instructionp,thread_pop());
       else thread_push(machine_p88k(instructionp));
       instructionp++;
-
-	    // replaced with TM:
-      /*	    desc[count++]=randi();
+      */
+	  case 0:
+      	    desc[count++]=randi();
 	    if (count==64) count=0;
 
 	    reader=(xxx[tc>>3]>>(tc&7)) &1;
@@ -1925,17 +1923,14 @@ void main(int argc, char *argv[])
 	    togo=(state>>1)&1; // 2nd bit
 
 	    // write tape bit 
-	    // reader=(xxx[tc>>3]>>(tc&7))&1;
 	    if (towrite==0)    xxx[tc>>3]&=~(1 << (tc&7)); // clear bit
 	    else xxx[tc>>3]|=(1 << (tc&7)); // set bit			 
-	    //	    	    printf("%c", xxx[tc>>3]);
-	    //	    printf("px::%d\n",pc);
 	    modifier=xxx[tc>>3]; // TESTING?
 	    flaggy=1;
 	    if (togo==0) tc-=1;
 	    else tc+=1;
 	    if (tc<0) tc=2048; // wrap on >>3
-	    if (tc>2048) tc=0;*/
+	    if (tc>2048) tc=0;
       break;
 	    ////////////////////////////CPUINTREV
 	  case 15: //Corewars again
