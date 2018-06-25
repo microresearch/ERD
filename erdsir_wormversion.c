@@ -9,79 +9,17 @@ Returning the body, electronics, and dystopic code to the earth,
 revived and decoded years later as "yersinia pestis".
 
 ///////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+// SIR 2016 re-issue with some tweaks and new Turing Machine implementation.
+////////////////////////////////////////////////////////////////////////////
 
-New version October 28 2016+
+LAYOUT:
 
-1- is this the RIGHT old version - based on erdsir.c - TODO: check hex dump against this compiled
-
-NO they don't match with the one SIR we have dumped with avrdude - so code is
-wrong/different OR makefile is different OR avr-gcc version differs (4.7.2 on t60) - TEST how it sounds...
-
-but most likely is avr-gcc as hex in github matches with dumped SIR 
-
-CHECK this at home with x60 but assume this code is correct!
-
-////
-
-- updates TODO:
-
-2- latest mytm.c code in plague code replaces last mutate! - do we have enough memory?
-
-  void (*plag[])(unsigned char* cells) = {mutate,SIR,hodge,cel,life,inc,shift,chunk,runwire,runhodge,runfire,runkrum,runhodgenet,runlife,runcel,mutate};
-
-3- test plague set// CPUs on laptop
-
-4- worming in sin/cos lookup as movement options in plague TO SET
-
-///////////////////////////////////////////////////////////////////////
-
-MODIFICATIONS for euro:
-
-// HW issues: jumper last cap C13 and cut trace left of R10 to X19 and
-jumper wire to right of R7// GND on edge to caps for ATMEGA!
-
-NEW LAYOUT:
-
-   0 // PLAGUE/CPU
-0 // INSTR
-   0 // SPEED
+   0 // PLAGUE/CPU ADC:X+2
+0 // INSTR ADC:X+1
+   0 // SPEED ADC: X+0
 
 0 0 0 // CPU/SPEED/INST
-
-
-TODO/DONE:
-
-- buffer for adc0 and adc5 - better withiut interrupt!
-- resolve speed settings - could be a bit SLOWER!
-
-- new generators/stacks and ports from D.I. - TURING machine??? DONE ports
-- incoming code/buffer signal and outgoing balance ???
-
-- global OCR0A modifier which can be changed by cpu code (OCR0A commented out)DONE
-- and more use of modifiers in cpu code!
-
-- how to take care of speed settings for CPU and plague separately
-- extras that were setting filter before
-
-DONE:
-
-- few tweaks here and there. now runs through memory as sequence all
-
-- and others question of random and also speed *now last knob CV = PC0
-and PC5 should replace rand and first is BOTH plague and CPU* DONE
-- out is on PD6 now // was PD6=0C0A DONE
-- adcread(3) as open/random or ???? - should now be (adcread(0)+adcread(5)) - DONE - STILL TODO????
-- remove filter/filtermod and other hardware DONE
-- speed setting = pinX DONE - maybe 2 different speeds lower and upper bitsDONE
-// test potis first! how could work - POTI plus CV
-- others = pinXX and pinXXX (once for CV, once for POTI - how to combine?) DONE
-
-- additional instructions and plague simulations
-
-//////
-1-RV1=CV2=// PC2+PC4 (latter in all is CV)
-2-RV3=CV3=// PC0+PC5
-3-MID top/bottom// RV2=CV1=// PC1+PC3 =speed
 
 */
 
@@ -91,6 +29,7 @@ and PC5 should replace rand and first is BOTH plague and CPU* DONE
 #include <stdint.h>
 #include <stdlib.h>
 #include <math.h>
+#ifdef AVR_IS
 #include <avr/io.h>
 #include <avr/eeprom.h>
 #include <avr/interrupt.h>
@@ -98,12 +37,16 @@ and PC5 should replace rand and first is BOTH plague and CPU* DONE
 #include <util/delay.h>
 #include <avr/sleep.h>
 #include <avr/wdt.h>
+#define randi() (adcread(1)+adcread(5))  // INSTRUCTION
+#else
+#include <time.h>
+#define randi() (rand()%255)
+#endif
 
 typedef int u16;
 typedef unsigned char u8;
 
-#define randi() (adcread(1)+adcread(5)) 
-#define trand ((rand()%255)+randi()+adcread(7)&15)
+#define trand ((rand()%255)+randi()+(adcread(7)&15))
 //#define randi() (incincom())
 #define CELLLEN 16
 #define floor(x) ((int)(x))
@@ -120,7 +63,8 @@ typedef unsigned char u8;
 
 signed char insdir,dir; 
 unsigned char modifier,flaggy; 
-unsigned char xxx[MAX_SAM+12];
+unsigned char xxx[MAX_SAM+12]; // for tm this is our tape
+unsigned char desc[64]; // read into desc from randi and check for bounds
 //unsigned char incom[255];
 signed char m_stack_pos;
 u8 m_stack[16];
@@ -154,6 +98,7 @@ u8 m_reg8bit1,m_reg8bit2;
 
 //unsigned char countt=0;
 
+#ifdef AVR_IS
 unsigned char adcread(unsigned char channel){
   unsigned char result, high;
   ADMUX &= 0xF8; // clear existing channel selection                
@@ -163,6 +108,15 @@ unsigned char adcread(unsigned char channel){
   result=ADCH;
   return result;
 }
+#else
+unsigned char adcread(unsigned char channel){
+  unsigned char result, high;
+  if (channel==0 ||channel==1 || channel==7) result=rand()%255;
+  else result=10;
+  return result;
+}
+
+#endif
 
 unsigned char oldone;
 
@@ -207,7 +161,7 @@ u8 thread_pop() {
 	{
 	  u8 ret=m_stack[m_stack_pos];
 	  m_stack_pos--;
-				return ret;
+	  return ret;
 		//		return 0;
 	}
 	//    printf("errorr\n");
@@ -247,6 +201,7 @@ u8 antrulee(u8 dir,u8 inst, u8 rule){
 
 // above ported from cpuintrev
 
+#ifdef AVR_IS
 void adc_init(void)
 {
 	cbi(ADMUX, REFS1);
@@ -261,22 +216,26 @@ void adc_init(void)
 	DDRC = 0x00;
 	PORTC = 0x00;
 }
+#endif
 
 void initcell(unsigned char* cells){
   unsigned char x;
   for (x=0;x<MAX_SAM;x++){
     //    cells[x]=randi();
-    cells[x]=((rand()%255)+randi()+adcread(7)&15);
+    cells[x]=((rand()%255)+randi()+(adcread(7)&15)); // added bracket for AND!
+    //    printf("%d %d\n", cells[x],xxx[x]);
   }
 }
 
-//void (*filtermod[])(unsigned int cel) = {leftsh, rightsh, mult, divvv};  
-
 void mutate(unsigned char* cells){
   unsigned char x,y;
-  for (y=0;y<cells[0];y++){
+  for (y=0;y<cells[0];y++){// try this?
     x=randi();
-  cells[x]^=(trand&0x0f);
+    //    printf("plague %d %d    ", x,cells[0]);
+
+        cells[x]^=(trand&0x0f);
+    //      cells[x]^=(trand);
+  //    printf("%d xxx:%d\n",y, cells[x]);
   }
 }
 
@@ -318,7 +277,7 @@ u8 headcount(u8 *datagenbuffer,u8 place){
   if (datagenbuffer[place]==1) counter++;
   place+=2;
   if (datagenbuffer[place]==1) counter++;
-  place+=n-1;
+  place+=n-2; // was -1
   if (datagenbuffer[place]==1) counter++;
   place+=1;
   if (datagenbuffer[place]==1) counter++;
@@ -592,9 +551,6 @@ void runfire(unsigned char* cellies){
   flag^=0x01;
 }
 
-
-
-
 void runkrum(unsigned char* cellies){
 
   static unsigned char flag=0;
@@ -608,7 +564,7 @@ void runkrum(unsigned char* cellies){
     cells=&cellies[MAX_SAM2]; newcells=cellies;
   }      
 
-  n=randi();
+  n=randi()&127;
   if (n==0) n=1;
 
   for (x=0;x<MAX_SAM2; x++){
@@ -624,7 +580,7 @@ void runkrum(unsigned char* cellies){
 
   place+=cellies[0]-1;
   if (cells[place]==(cells[x]+1)%n) newcells[x]=cells[place];
-  //  printf("%c", cells[x]);
+  //    printf("%c", cells[x]);
   }
 
   // swapping 
@@ -735,7 +691,7 @@ void runcel(unsigned char* cellies){
   //  flag^=0x01;
 }
 
-u8 table[21];
+//u8 table[21];
 
 /*void inittable(u8 r, u8 k, int rule){
   u8 max; int z; u8 summ;
@@ -844,7 +800,8 @@ void cel(unsigned char* cells){
 
   for (cell = 1; cell < CELLLEN; cell++){ 
       state = 0;
-      if (cells[cell + 1+ (l*CELLLEN)]>128)
+      tmp=cell + 1+ (l*CELLLEN); // changed
+      if (cells[tmp]>128) // max 256
 	state |= 0x4;
       if (cells[cell+(CELLLEN*l)]>128)
 	state |= 0x2;
@@ -871,9 +828,11 @@ void SIR(unsigned char* cellies){
 
     if (flag==0) {
     cells=cellies; newcells=&cellies[MAX_SAM2];
+    //    printf("SWOP %d %d\n", cells[11], newcells[11]);
   }
   else {
     cells=&cellies[MAX_SAM2]; newcells=cellies;
+    //    printf("UN_SWOP %d %d\n", cells[11], newcells[11]);
     } 
 
   for (x=0;x<127;x++){
@@ -947,9 +906,9 @@ void life(unsigned char* cellies){
 
 // instructions for plague CPUS!
 
-unsigned char ostack[20], stack[20], omem;
+unsigned char omem;
 
-/* BIOTA: two dimensional memory map */
+/* BIOTA: two dimensional memory map - add/replace with wormings */
 
 unsigned char btdir,dcdir;
 
@@ -959,11 +918,6 @@ unsigned char btempty(unsigned char* cells, unsigned char IP){
   else if (btdir==1) btdir=0;
   else if (btdir==2) btdir=3;
   else if (btdir==3) btdir=2;
-  return IP;
-}
-
-unsigned char btoutf(unsigned char* cells, unsigned char IP){
-  //(*filtermod[qqq]) ((int)cells[omem]);
   return IP;
 }
 
@@ -1056,18 +1010,18 @@ unsigned char btdup(unsigned char* cells, unsigned char IP){
   return IP;
 }
 
-unsigned char clock, count;
+unsigned char clocky, count;
 
 // reddeath
 
 //1- the plague within (12 midnight) - all the cells infect
 
 unsigned char redplague(unsigned char* cells, unsigned char IP){
-  if (clock==12){
+  if (clocky==12){
     unsigned char tmp=IP+1;
-    clock=12;
+    clocky=12;
     cells[tmp]=cells[IP];
-    if (IP==255) clock=13;
+    if (IP==255) clocky=13;
     return IP+1;
   }
   else return IP+insdir;
@@ -1075,8 +1029,8 @@ unsigned char redplague(unsigned char* cells, unsigned char IP){
 
 //2- death - one by one fall dead
 unsigned char reddeath(unsigned char* cells, unsigned char IP){
-  if (clock==13){
-    clock=13;
+  if (clocky==13){
+    //    clocky=13; // >>>>????
     unsigned char tmp=IP+count;
     cells[tmp]=randi();
     count++;
@@ -1085,10 +1039,10 @@ unsigned char reddeath(unsigned char* cells, unsigned char IP){
   else return IP+insdir;
 }
 
-//3- clock every hour - instruction counter or IP -some kind of TICK
-unsigned char redclock(unsigned char* cells, unsigned char IP){
-  clock++;
-  if (clock%60==0) {
+//3- clocky every hour - instruction counter or IP -some kind of TICK
+unsigned char redclocky(unsigned char* cells, unsigned char IP){
+  clocky++;
+  if (clocky%60==0) {
     modifier^=255;
     flaggy=1;
     return IP; // everyone stops
@@ -1177,12 +1131,6 @@ unsigned char tmp=omem+1;
 }
 
 // plague
-
-unsigned char ploutf(unsigned char* cells, unsigned char IP){
-  //(*filtermod[qqq]) ((int)cells[omem]);
-
-  return IP+insdir;
-}
 
 unsigned char ploutp(unsigned char* cells, unsigned char IP){
   unsigned char tmp=IP-1;
@@ -1296,11 +1244,6 @@ unsigned char rdcmp(unsigned char* cells, unsigned char IP){
   return IP;
 }
 
-unsigned char rdoutf(unsigned char* cells, unsigned char IP){
-  //  (*filtermod[qqq]) ((int)cells[IP+1]);
-  IP+=3;
-  return IP;
-}
 
 unsigned char rdoutp(unsigned char* cells, unsigned char IP){
   unsigned char tmpp=IP+2;
@@ -1311,11 +1254,6 @@ unsigned char rdoutp(unsigned char* cells, unsigned char IP){
 }
 
 // SIR: inc if , die if, recover if, getinfected if 
-
-unsigned char SIRoutf(unsigned char* cells, unsigned char IP){
-  //  (*filtermod[qqq]) ((int)cells[(IP+1)]+(int)cells[IP-1]);
-  return IP+insdir;
-}
 
 unsigned char SIRoutp(unsigned char* cells, unsigned char IP){
   unsigned char tmp=IP+1;
@@ -1362,7 +1300,7 @@ unsigned char SIRinfif(unsigned char* cells, unsigned char IP){
 
 // brainfuck
 
-unsigned char cycle;
+//signed char cycle; // was unsigned
 
 unsigned char bfinc(unsigned char* cells, unsigned char IP){
   omem++; 
@@ -1384,10 +1322,6 @@ unsigned char bfdecm(unsigned char* cells, unsigned char IP){
   return ++IP;
 }
 
-unsigned char bfoutf(unsigned char* cells, unsigned char IP){
-  //  (*filtermod[qqq]) ((int)cells[omem]);
-  return ++IP;
-}
 
 unsigned char bfoutp(unsigned char* cells, unsigned char IP){
   modifier=cells[omem]; 
@@ -1400,19 +1334,38 @@ unsigned char bfin(unsigned char* cells, unsigned char IP){
   return ++IP;
 }
 
-unsigned char bfbrac1(unsigned char* cells, unsigned char IP){
-  cycle++; 
-  if(cycle>=20) cycle=0; 
-  ostack[cycle] = IP; 
-  return ++IP;
+//unsigned char ostack[20];
+
+unsigned char bfbrac1(unsigned char* cells, unsigned char IP){ // redo these
+
+  //  [ if the byte at the data pointer is zero, then instead of moving the instruction pointer forward to the next command, jump it forward to the command after the matching ] command.
+
+  signed char bal = 1, count=0;
+  if (cells[omem] == 0) {
+    do {
+      IP++;
+      if      (cells[IP%255]%9 == 6) bal++; // [
+      else if (cells[IP%255]%9 == 7) bal--; // ]
+      count++;
+    } while ( bal != 0 && count<127 );
+  }
+  IP++;
+  return IP;
 }
 
 unsigned char bfbrac2(unsigned char* cells, unsigned char IP){
-  int i;
-  if(cells[omem] != 0) i = ostack[cycle]-1; 
-  cycle--; 
-  if(cycle<-1) cycle=20;
-  return i;
+
+  signed char bal = 0, count=0;
+  if (cells[omem] =! 0) {
+  do {
+    if      (cells[IP%255]%9 == 6) bal++; // [
+    else if (cells[IP%255]%9 == 7) bal--; // ]
+    IP--;
+    count++;
+  } while ( bal != 0 && count<127);
+  }
+  IP++;
+    return IP;
 }
 
 // first attempt
@@ -1457,10 +1410,6 @@ unsigned char fdecm(unsigned char* cells, unsigned char IP){
   return IP+insdir;
 }
 
-unsigned char outf(unsigned char* cells, unsigned char IP){
-  //(*filtermod[qqq]) ((int)cells[omem]);
-  return IP+insdir;
-}
 
 unsigned char outp(unsigned char* cells, unsigned char IP){
   modifier=cells[omem];
@@ -1468,10 +1417,6 @@ unsigned char outp(unsigned char* cells, unsigned char IP){
   return IP+insdir;
 }
 
-unsigned char outff(unsigned char* cells, unsigned char IP){
-  //(*filtermod[qqq]) ((int)cells[omem]);
-  return IP+insdir;
-}
 
 unsigned char outpp(unsigned char* cells, unsigned char IP){
   modifier=omem;
@@ -1513,7 +1458,7 @@ unsigned char branch(unsigned char* cells, unsigned char IP){
 unsigned char jump(unsigned char* cells, unsigned char IP){
   unsigned char tmp=IP+1;
   if (cells[tmp]<128) return IP+cells[tmp];
-  else return IP+insdir;
+  return IP+insdir; // removed else
 }
 
 unsigned char infect(unsigned char* cells, unsigned char IP){
@@ -1555,14 +1500,28 @@ unsigned char writesamp(unsigned char* cells, unsigned char IP){
 }
 
 unsigned char dirout(unsigned char* cells, unsigned char IP){
+#ifdef AVR_IS
   OCR0A=cells[IP];
+#endif
   return IP+insdir;
 }
 
-
+#ifdef AVR_IS
 void main(void)
 {
-  unsigned char cpu, plague, instruction, instructionp;
+   unsigned char cpu, plague;
+   adc_init();
+   srand(randi());
+
+#else
+void main(int argc, char *argv[])
+{
+   unsigned char plague =atoi(argv[1]);
+   unsigned char cpu=atoi(argv[2]);
+   srand(time(NULL));
+   
+#endif
+   unsigned char instruction, instructionp;
   unsigned int counter=0,counterr=0,othercounter=0;
   unsigned int speed,plaguespeed;
   unsigned char *cells=xxx; 
@@ -1572,95 +1531,62 @@ void main(void)
   u8 biotadir[8]={240,241,1,15,16,17,255,239};
   u8 deltastate[16] = {1, 4, 2, 7, 3, 13, 4, 7, 8, 9, 3, 12, 6, 11, 5, 13};
 
+  // from TM
+  unsigned char ch, reader, state;
+  unsigned char count=0, pc=0, towrite, togo;
+  signed int tc=0;
+
   //  inittable(3,4,randi());
 
-  unsigned char (*instructionsetfirst[])(unsigned char* cells, unsigned char IP) = {outpp,finc,fdec,fincm,fdecm,fin1,fin2,fin3,fin4,outp,plus,minus,bitshift1,bitshift2,bitshift3,branch,jump,infect,store,writeknob,writesamp,skip,direction,die,dirout}; // 24 instructions +1
+  unsigned char (*instructionsetfirst[])(unsigned char* cells, unsigned char IP) = {outpp,finc,fdec,fincm,fdecm,fin1,fin2,fin3,fin4,outp,plus,minus,bitshift1,bitshift2,bitshift3,branch,jump,infect,store,writeknob,writesamp,skip,direction,die,dirout}; // 24 instructions +1=25
 
-  unsigned char (*instructionsetplague[])(unsigned char* cells, unsigned char IP) = {writesamp, ploutp, plenclose, plinfect, pldie, plwalk,dirout}; // 6 +1
+  unsigned char (*instructionsetplague[])(unsigned char* cells, unsigned char IP) = {writesamp, ploutp, plenclose, plinfect, pldie, plwalk,dirout}; // 6 +1=7
 
-  unsigned char (*instructionsetbf[])(unsigned char* cells, unsigned char IP) = {bfinc,bfdec,bfincm,bfdecm,bfoutp,bfin,bfbrac1,bfbrac2,dirout}; // 8 +1
+  unsigned char (*instructionsetbf[])(unsigned char* cells, unsigned char IP) = {bfinc,bfdec,bfincm,bfdecm,bfoutp,bfin,bfbrac1,bfbrac2,dirout}; // 8 +1=9
 
-  unsigned char (*instructionsetSIR[])(unsigned char* cells, unsigned char IP) = {writesamp,SIRoutp,SIRincif,SIRdieif,SIRrecif,SIRinfif,dirout}; // 5+1+1
+  unsigned char (*instructionsetSIR[])(unsigned char* cells, unsigned char IP) = {writesamp,SIRoutp,SIRincif,SIRdieif,SIRrecif,SIRinfif,dirout}; // 5+1+1=7
 
-  unsigned char (*instructionsetredcode[])(unsigned char* cells, unsigned char IP) = {writesamp,rdmov,rdadd,rdsub,rdjmp,rdjmz,rdjmg,rddjz,rddat,rdcmp,rdoutp,dirout}; // 10+1+1
+  unsigned char (*instructionsetredcode[])(unsigned char* cells, unsigned char IP) = {writesamp,rdmov,rdadd,rdsub,rdjmp,rdjmz,rdjmg,rddjz,rddat,rdcmp,rdoutp,dirout}; // 10+1+1=12
 
-  unsigned char (*instructionsetbiota[])(unsigned char* cells, unsigned char IP) = {btempty,btoutp,btstraight,btbackup,btturn,btunturn,btg,btclear,btdup,writesamp,dirout}; // 9+1+1
+  unsigned char (*instructionsetbiota[])(unsigned char* cells, unsigned char IP) = {btempty,btoutp,btstraight,btbackup,btturn,btunturn,btg,btclear,btdup,writesamp,dirout}; // 9+1+1=11
 
-  unsigned char (*instructionsetreddeath[])(unsigned char* cells, unsigned char IP) = {redplague,reddeath,redclock,redrooms,redunmask,redprospero,redoutside,writesamp,dirout}; // 7+1+1
+  unsigned char (*instructionsetreddeath[])(unsigned char* cells, unsigned char IP) = {redplague,reddeath,redclocky,redrooms,redunmask,redprospero,redoutside,writesamp,dirout}; // 7+1+1=9
 
-  void (*plag[])(unsigned char* cells) = {mutate,SIR,hodge,cel,life,inc,shift,chunk,runwire,runhodge,runfire,runkrum,runhodgenet,runlife,runcel,mutate};//TODO
-
-  ///  TODO: test each one and maybe replace basics inc, shift, chunk and last mutate and any dupes with: mytm (1) and worm dir options ...
-
+  void (*plag[])(unsigned char* cells) = {mutate,SIR,hodge,cel,life,inc,shift,chunk,runwire,runhodge,runfire,runkrum,runhodgenet,runlife,runcel,mutate};// 16
 
   omem=1;
 
-  adc_init();
-  initcell(cells);
   dir=1;
-    DDRD=0x40; // 6 as out
-cli();//stop interrupts
+  initcell(cells);
+  for (tmp=0;tmp<64;tmp++){
+    desc[tmp]=randi();
+  }
+  
+#ifdef AVR_IS
+   DDRD=0x40; // 6 as out
+   cli();//stop interrupts
+   TCCR0A=(1<<COM0A1) | (1<<WGM01) | (1<<WGM00); // fast PWM
+   TCCR0B=(1<<CS00) | (1<<CS01);  // divide by 64 for 1KHz
 
- srand(randi());
-
-    //    PORTB=0x40;
-  //  DDRB|=0x02;  // was clock
-  //    TCCR1A= (1<<COM1A0);// | (1<<WGM11) | (1<<WGM10); // KEEP AS CTC for filter
-  //    TCCR1B= (1<<WGM12) |(1<<CS10); // /1024 now
-  //      TCCR1A= (1<<COM1A0) | (1<<WGM11) | (1<<WGM10); // PWM
-  //    TCCR1B= (1<<WGM12) | (1<<CS11);// | (1<<CS10); // /64
-
-    //TCCR0A=(1<<COM0A0) | (1<<WGM01)| (1<<WGM00); // PWM output
-  //  TCCR0A=(1<<COM0A0) | (1<<WGM01);
-  //      TCCR0B|=(1<<CS00) | (1<<CS02) | (1<<WGM02);  // divide by one more - is now on /1024
-  //TCCR0B|=(1<<CS00) | (1<<WGM02);  // divide by one more - is now on /1024
-
-  // from arduino code:
- TCCR0A=(1<<COM0A1) | (1<<WGM01) | (1<<WGM00); // fast PWM
-        TCCR0B=(1<<CS00) | (1<<CS01);  // divide by 64 for 1KHz
-
-      DIDR0=0x3f; // disable digital inputs on PC0 to PC5
-      //      sbi(TIMSK0, TOIE0);
-
-  //  cbi(PORTD,PD0);
-  //  sbi(PORTD,PD1); 
-  //  cbi(PORTD,PD2); // feedback
-
-      // interrupt 8KHz sample code
-//set timer2 interrupt at 8kHz
-/*  TCCR2A = 0;// set entire TCCR2A register to 0
-  TCCR2B = 0;// same for TCCR2B
-  TCNT2  = 0;//initialize counter value to 0
-  // set compare match register for 8khz increments
-  //  OCR2A = 249;// = (16*10^6) / (8000*8) - 1 (must be <256) 1600000 / 800*256
-  OCR2A=78; // was 78 with 1024 divider = 200 HZ!?
-  // turn on CTC mode
-  TCCR2A |= (1 << WGM21);
-  // Set CS21 bit for 8 prescaler- was 8 for 8KHz - now 64 for 1Khz=CS22
-  //  TCCR2B |= (1 << CS20);// with cs20=1024   
-  TCCR2B |= (1 << CS21);// with cs21=256   
-  TCCR2B |= (1 << CS22);   
-  // enable timer compare interrupt
-  TIMSK2 |= (1 << OCIE2A);
-  sei();
-*/
-
+   DIDR0=0x3f; // disable digital inputs on PC0 to PC5
+#endif
   instructionp=0; insdir=1; dir=1; btdir=0; dcdir=0;
 
-  //      OCR0A=128;
-
   while(1){
-
-
-    speed=(adcread(0)+adcread(3))<<4; // TESTING! - speed of both slowing!TODO! was <<2
+    speed=(adcread(0)+adcread(3))<<4; // TESTING! - speed of both slowing!TODO! was <<2 .. ??SPEED
     plaguespeed=speed>>2;//>>4; // 4 bits=16;
     cpuspeed=speed>>5;//&15; // should be logarithmic and longer
-	tmp=(adcread(2)+adcread(4)); // 8 bits
-	cpu=tmp>>4; // 8 CPUs // 6 bits->8 CPUs=3bits - now 4 =16 CPUS TODO!
-	plague=tmp&15;
-	if (plague==0) plague=cells[instructionp]>>4;
-	//	cpu=9;
-
+    tmp=(adcread(2)+adcread(4)); // 8 bits // CPU and PLAGUE
+#ifdef AVR_IS
+    cpu=tmp>>4; // 8 CPUs // 6 bits->8 CPUs=3bits - now 4 =16 CPUS TODO!
+    plague=tmp&15;
+    if (plague==0) plague=cells[instructionp]>>4; /// ????
+#else
+    cpuspeed=1;plaguespeed=1;speed=1;
+#endif
+    // TESTING:
+    //	cpu=0;
+    
     // plague CPU!
     //    if (count%((IP%32)+1)==0){ // ??? This is where we do speed!
        		if (++counter>=cpuspeed){
@@ -1668,7 +1594,7 @@ cli();//stop interrupts
 	//        if ((counter%(1+cpuspeed))==0){ // ??? This is where we do speed!
 	  //	oldone=instructionp;// TESTY!!!!
 	  switch(cpu){
-	  case 0:
+	  case 14: // TM is now zero
 	    instruction=cells[instructionp];
 	    instructionp=(*instructionsetfirst[instruction%25]) (cells, instructionp); // mistake before as was instruction%INSTLEN in last instance
 	    //	    insdir=dir*(IP%16)+1; // prev mistake as just got exponentially larger
@@ -1684,7 +1610,7 @@ cli();//stop interrupts
 	  case 2:
 	    instruction=cells[instructionp];
 	    instructionp=(*instructionsetbf[instruction%9]) (cells, instructionp);
-	    insdir=dir;
+	    insdir=dir;//NOt needed
 	    break;
 	  case 3:
 	    instruction=cells[instructionp];
@@ -1694,11 +1620,9 @@ cli();//stop interrupts
 	  case 4:
 	    instruction=cells[instructionp];
 	    instructionp=(*instructionsetredcode[instruction%12]) (cells, instructionp); 
-	    insdir=dir;
+	    insdir=dir; //NOt needed
 	    break;
 	  case 5:
-	    //	    instruction=cells[instructionp];
-	    //	    OCR0A=instruction; /
 	    cells[instructionp]=randi();
 	    instructionp+=dir;
 	    break;
@@ -1735,17 +1659,16 @@ cli();//stop interrupts
 	case POPI: if (thread_stack_count(1)) machine_poke(machine_p88k(machine_p88k(instructionp++)),thread_pop()); 
 	  	  else instructionp++;
 	  break;
-
 	case ADD: if (thread_stack_count(2)) thread_push(thread_pop()+thread_pop()); 
 	  instructionp++;
-break;
-    case SUB: if (thread_stack_count(2)) thread_push(thread_pop()-thread_pop());instructionp++; break;
-    case INC: if (thread_stack_count(1)) thread_push(thread_pop()+1);instructionp++; break;
-    case DEC: if (thread_stack_count(1)) thread_push(thread_pop()-1);instructionp++; break;
-    case AND: if (thread_stack_count(2)) thread_push(thread_pop()&thread_pop());instructionp++; break;
-    case OR: if (thread_stack_count(2)) thread_push(thread_pop()|thread_pop());instructionp++; break;
-    case XOR: if (thread_stack_count(2)) thread_push(thread_pop()^thread_pop());instructionp++; break;
-    case NOT: if (thread_stack_count(1)) thread_push(~thread_pop());instructionp++; break;
+	  break;
+	case SUB: if (thread_stack_count(2)) thread_push(thread_pop()-thread_pop());instructionp++; break;
+	case INC: if (thread_stack_count(1)) thread_push(thread_pop()+1);instructionp++; break;
+	case DEC: if (thread_stack_count(1)) thread_push(thread_pop()-1);instructionp++; break;
+	case AND: if (thread_stack_count(2)) thread_push(thread_pop()&thread_pop());instructionp++; break;
+	case OR: if (thread_stack_count(2)) thread_push(thread_pop()|thread_pop());instructionp++; break;
+	case XOR: if (thread_stack_count(2)) thread_push(thread_pop()^thread_pop());instructionp++; break;
+	case NOT: if (thread_stack_count(1)) thread_push(~thread_pop());instructionp++; break;
 	case ROR: if (thread_stack_count(2)) thread_push(thread_pop()>>(machine_p88k(instructionp++)&7)); 
  else instructionp++; break;
     case ROL: if (thread_stack_count(2)) thread_push(thread_pop()<<(machine_p88k(instructionp++)&7)); else instructionp++;break;
@@ -1780,7 +1703,7 @@ break;
 	    m_reg8bit1=biotadir[wormdir];
 	    instructionp+=m_reg8bit1;
 	    instr=cells[instructionp];
-	    switch(instr%13){ //13
+	    switch(instr%12){ //13 NOW 12
       case 0:
 	machine_poke(machine_p88k(instructionp),randi());      
 	break;
@@ -1809,17 +1732,12 @@ break;
 	if (machine_p88k(instructionp+m_reg8bit2)==0) instructionp+=machine_p88k(instructionp+m_reg8bit1);
 	break;
       case 9:
-	//	tmp=machine_p88k(instructionp);
-	//	machine_poke(instructionp-m_reg8bit1,tmp);
-	//	machine_poke(instructionp+m_reg8bit1,tmp);
-	break;
-      case 10:
 	thread_push(machine_p88k(instructionp+m_reg8bit1));
 	break;
-      case 11:
+      case 10:
 	machine_poke(instructionp+m_reg8bit1,thread_pop());
 	break;
-      case 12:
+      case 11:
 	machine_poke(instructionp+m_reg8bit1,randi());      
 	break;
       }
@@ -1827,7 +1745,7 @@ break;
 	    ////////////////////////////CPUINTREV
       	  case 10: // befunge
 	    instr=xxx[instructionp];
-      switch(instr%31){
+      switch(instr%33){
       case 0:
       case 1:
       case 2:
@@ -1896,25 +1814,34 @@ break;
 	thread_push(tmp);
 	thread_push(tmp);
 	break;
-      case 25:
+      case 25: // swap two values
 	m_reg8bit1=thread_pop();
-	m_reg8bit2=thread_pop();
+	tmp=thread_pop();
 	thread_push(m_reg8bit1);
-	thread_push(m_reg8bit2);
+	thread_push(tmp);
 	break;
       case 26:
 	thread_pop();
 	break;
+	// pop values and output - ADDED!
       case 27:
-	instructionp+=biotadir[m_reg8bit2&7];
+	modifier=thread_pop();
+	flaggy=1;
 	break;
       case 28:
+	modifier=thread_pop();
+	flaggy=1;
+	break;
+      case 29: // skip
+	instructionp+=biotadir[m_reg8bit2&7];
+	break;
+      case 30: //put
 	machine_poke((thread_pop())*(thread_pop()),thread_pop());
 	break;
-      case 29:
+      case 31:///get
 	thread_push(machine_p88k(thread_pop()*thread_pop()));
 	break;
-      case 30:
+      case 32: // push value
 	machine_poke((thread_pop())*(thread_pop()),randi());      
 	break;
       }
@@ -1963,29 +1890,52 @@ break;
       //tm->dir = (tm->dir + delta) & 3;
       m_reg8bit2=(m_reg8bit2+tmp)&7;
       //do move and wrap
-      wormdir=(m_reg8bit2)&7;
+      wormdir=(m_reg8bit2);// removed ^7 as was above
       instructionp+=biotadir[wormdir];
       // finally
       m_reg8bit1 += deltastate[instr&15];
       break;
 	    ////////////////////////////CPUINTREV
-      	  case 13: // ANT
+      	  case 13: // ANT ???
 	    instr=xxx[instructionp];
 	    machine_poke(instructionp,instr+biotadir[m_reg8bit1&7]);
 	    m_reg8bit1=antrulee(m_reg8bit1,instr&7,machine_p88k(0));//last is rule
 	    instructionp+=biotadir[m_reg8bit1&7];
       break;
-	    ////////////////////////////CPUINTREV
-	  case 14: // LEAKY!
-	    instr=xxx[instructionp];
+	    ////////////////////////////TURING
+      /*      
+	    	    instr=xxx[instructionp];
       if (thread_stack_count(16)) machine_poke(instructionp,thread_pop());
       else thread_push(machine_p88k(instructionp));
       instructionp++;
+      */
+	  case 0:
+      	    desc[count++]=randi();
+	    if (count==64) count=0;
+
+	    reader=(xxx[tc>>3]>>(tc&7)) &1;
+	    if (reader==0) state=desc[pc];
+	    else state=desc[(pc+1)%64];
+
+	    // do state
+	    pc=(state>>2)&63; // new state - last 6 bits
+	    towrite=(state&1); // 1st bit
+	    togo=(state>>1)&1; // 2nd bit
+
+	    // write tape bit 
+	    if (towrite==0)    xxx[tc>>3]&=~(1 << (tc&7)); // clear bit
+	    else xxx[tc>>3]|=(1 << (tc&7)); // set bit			 
+	    modifier=xxx[tc>>3]; // TESTING?
+	    flaggy=1;
+	    if (togo==0) tc-=1;
+	    else tc+=1;
+	    if (tc<0) tc=2048; // wrap on >>3
+	    if (tc>2048) tc=0;
       break;
 	    ////////////////////////////CPUINTREV
 	  case 15: //Corewars again
 	    instr=xxx[instructionp];
-      switch(instr%30){
+      switch(instr%29){
       case 0:
 	// MOV # to direct.
 	machine_poke(instructionp+machine_p88k(instructionp+2),machine_p88k(instructionp+1));
@@ -2120,22 +2070,22 @@ break;
 	if (machine_p88k(machine_p88k(machine_p88k(instructionp+2)))==0) instructionp=machine_p88k(machine_p88k(machine_p88k(instructionp+1)));
 	else instructionp+=3;
 	break;
+	/* case 26: */ // removed
+      /* 	// SPL */
+      /* 	//- add new thread at address x TESTY TODO! */
+      /* 	//	cpustackpush(machine_p88k(instructionp+1),machine_p88k(instructionp+2),6,m_del); */
+      /* 	//	printf("adde\n"); */
+      /* 	instructionp+=3; */
+      /* 	break; */
       case 26:
-	// SPL
-	//- add new thread at address x TESTY TODO!
-	//	cpustackpush(machine_p88k(instructionp+1),machine_p88k(instructionp+2),6,m_del);
-	//	printf("adde\n");
 	instructionp+=3;
 	break;
       case 27:
-	instructionp+=3;
-	break;
-      case 28:
 	// input to direct.
 	machine_poke(instructionp+machine_p88k(instructionp+2),randi());
 	instructionp+=3;
 	break;
-      case 29:
+      case 28:
 	// to indirect.
 	machine_poke(machine_p88k(machine_p88k(instructionp+2)),randi());
 	instructionp+=3;
@@ -2150,24 +2100,22 @@ break;
 
   if (++counterr>=speed) { //once per sec test was passed
     counterr=0;
-    oldone++;
+    oldone++; 
     if (flaggy==1) {
 	    flaggy=0;
 	  }
     else modifier=xxx[oldone];
 	  /// invert or?
+#ifdef AVR_IS
     OCR0A=255-modifier;
-    //      OCR0A=255-(xxx[oldone]);
+#else
+    //        printf("x: %d mod: %d\n",oldone, modifier);
+       printf("%c",modifier);
+#endif
   }
-
-
-	  //	}
-	  //	  OCR0A=255;
-	  //	}
-  //  plague=9;
   if (++othercounter>=plaguespeed){ //was instructionp%step
     othercounter=0;
-       (*plag[plague])(cells);
+           (*plag[plague])(cells);
   }
 	    //  }
   }
