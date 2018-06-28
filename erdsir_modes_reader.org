@@ -1,0 +1,3086 @@
+#+TITLE: ERD modular eurorack series 2017 ERD/SIR plague reader
+#+STARTUP:    align fold nodlcheck hidestars oddeven lognotestate
+#+SEQ_TODO:   TODO(t) INPROGRESS(i) WAITING(w@) | DONE(d) CANCELED(c@)
+#+TAGS:       Write(w) Update(u) Fix(f) Check(c)  noexport(n)
+#+CATEGORY:   index
+#+OPTIONS:   H:3 num:nil toc:nil \n:nil @:t ::t |:t ^:nil -:nil f:t *:t TeX:t LaTeX:t skip:nil d:(HIDE) tags:not-in-toc
+#+AUTHOR: micro_research
+#+LATEX_HEADER: \setlength\parskip{0.8mm} \usepackage{titling} \setlength{\droptitle}{-10em} \usepackage[topmargin=0.5in]{geometry} \usepackage[pdftex]{graphicx} \usepackage[final]{pdfpages}
+
+
+
+\includegraphics[width=40em]{/root/rsync2016/miscc/turing.jpeg}
+
+This reader expands on the plague CPU simulations and settings which
+are accessed from the top right knob and lower left CV input.
+
+As the knob is turned clockwise the user accesses 16 plague
+simulations modes and 16 instruction sets for plague processor units
+running from the inbuilt villagers, tape or memory (accessed by middle
+instruction knob/lower right CV). The plague simulations repeat
+sequentially for each of the macro processor modes which divide up the
+knob into 16 grosser segments.
+
+\includegraphics[width=40em]{erdsirreader/kljgcf8.jpg} 
+
+*This reader presents key texts for essential modes and lists each
+mode with a short description as follows:*
+
+* Modes
+** Plague modes
+
+  - The first mode selects a plague mode depending on the instruction
+    encountered // mutation also
+  - SIR - epidemiological model -- susceptible (S), infected (I), and resistant (R)
+  - Hodgepodge - A.K. Dewdney. The hodgepodge machine makes waves. Scientific American. August 1988. p. 104 
+  - Cellular automata
+  - The Game of life
+  - Simple increment
+  - Shift instructions
+  - Chunk instructions
+  - Wireworld cellular automata: Turing-complete, simulates electronic logic elements.
+  - Hodgepodge - differing implementation
+  - Forest fire model
+  - Krum unknown cellular automata model
+  - Hodgepodge - differing implementation
+  - The Game of life - differing implementation
+  - Cellular automata - differing implementation
+  - Mutation
+
+** Processor Units 
+
+  - True Turing Machine - machine description input on instruction knob
+  - Plague instruction set - a simulated processor model
+  - Brainfuck - esoteric programming language
+  - SIR - - epidemiological model -- susceptible (S), infected (I), and resistant (R)
+  - Redcode/Corewars - Core War is a 1984 programming game created by D. G. Jones and A. K. Dewdney 
+  - Simply inputs instructions into the tape/memory
+  - Masque of the Red Death - Edgar Allen Poe simulation
+  - Biota - an esoteric programming language in two dimensions 
+  - Leaking stack instruction set - a simulated processor model
+  - Worm movements
+  - Befunge -  a two-dimensional fungeoidal (in fact, the original fungeoid) esoteric programming language
+  - Langton's ant - a kind of Turmite
+  - Turmite -  a turmite is a Turing machine which has an orientation
+  - Ant - a singular ant
+  - Simple Turing complete instruction set
+  - More Corewars
+
+* Some texts and code
+
+\includegraphics[width=40em]{/root/projects/ERD_MODULES/ERD/erdsirreader/Thetriumphofdeath.jpg}
+
+** SIR and contagion
+
+*** It is the simple SIR epidemic without births or deaths. 
+
+#+BEGIN_SRC python
+  #!/usr/bin/env python
+
+  ####################################################################
+  ###    This is the PYTHON version of program 2.1 from page 19 of   #
+  ### "Modeling Infectious Disease in humans and animals"            #
+  ### by Keeling & Rohani.                                            #
+  ###                                                                 #
+  ### It is the simple SIR epidemic without births or deaths.        #
+  ####################################################################
+
+  ##########################################################################
+  ### Copyright (C) <2008> Ilias Soumpasis                                 #
+  ### ilias.soumpasis@deductivethinking.com                                #
+  ### ilias.soumpasis@gmail.com                                            #
+  ###                                                                      #
+  ### This program is free software: you can redistribute it and/or modify #
+  ### it under the terms of the GNU General Public License as published by #
+  ### the Free Software Foundation, version 3.                             #
+  ###                                                                      #
+  ### This program is distributed in the hope that it will be useful,      #
+  ### but WITHOUT ANY WARRANTY; without even the implied warranty of       #
+  ### MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        #
+  ### GNU General Public License for more details.                         #
+  ###                                                                      #
+  ### You should find a copy of the GNU General Public License at          #
+  ###the Copyrights section or, see http://www.gnu.org/licenses.           #
+  ##########################################################################
+
+
+  import scipy.integrate as spi
+  import numpy as np
+  import pylab as pl
+
+  #beta=1.2247 #transmission rate
+  beta=0.8
+  247 #transmission rate
+  gamma=0.14286 # recovery
+  TS=1.0
+  ND=46.0 # steps
+  S0=1-1e-6 # proportion susc
+  I0=1e-6 #proportion inf
+  INPUT = (S0, I0, 0.0)
+
+
+  def diff_eqs(INP,t):  
+          '''The main set of equations'''
+          Y=np.zeros((3))
+          V = INP    
+          Y[0] = - beta * V[0] * V[1]
+          Y[1] = beta * V[0] * V[1] - gamma * V[1]
+          Y[2] = gamma * V[1]
+          return Y   # For odeint
+
+  t_start = 0.0; t_end = ND; t_inc = TS
+  t_range = np.arange(t_start, t_end+t_inc, t_inc)
+  RES = spi.odeint(diff_eqs,INPUT,t_range)
+
+
+  # for ress in RES[:,1]:
+  #       #print int(ress*22000)
+  #       deltax=0
+  #       deltay=0
+  #       rot=0
+  #       print "%d %d %d %d %d" % (ress*22000,ress*22000,deltax,deltay,rot)
+
+  for res,ress,resss in RES:
+          print "%d %d %d %d %d" %
+          (500+resss*3000.0,500+resss*3000.0,ress*1500.0,ress*1500.0,res*36000.0)
+
+
+  # #Ploting
+  # pl.subplot(211)
+  # pl.plot(RES[:,0], '-g', label='Susceptibles')
+  # pl.plot(RES[:,2], '-k', label='Recovereds')
+  # pl.legend(loc=0)
+  # pl.title('Program_2_1.py')
+  # pl.xlabel('Time')
+  # pl.ylabel('Susceptibles and Recovereds')
+  # pl.subplot(212)
+  # pl.plot(RES[:,1], '-r', label='Infectious')
+  # pl.xlabel('Time')
+  # pl.ylabel('Infectious')
+  # pl.show()
+#+END_SRC
+
+\includepdf[pages=-]{/root/projects/ERD_MODULES/ERD/erdsirreader/delreyAMS17-20-2009.pdf}
+
+\includepdf[pages=-]{/root/projects/ERD_MODULES/ERD/erdsirreader/Zombies.pdf}
+
+** Turing machines
+
+\includegraphics[width=40em]{erdsirreader/tm001.jpeg}
+
+\includepdf[pages=-]{/root/projects/ERD_MODULES/ERD/erdsirreader/19-1-2.pdf}
+
+** Corewars
+
+*** COMPUTER RECREATIONS: In the game called Core War hostile programs engage in a battle of bits.
+
+*by A. K. Dewdney*
+
+\includegraphics[width=20em]{erdsirreader/redcode.jpg} 
+
+\includegraphics[width=40em]{erdsirreader/dwarf.jpg} 
+
+\includegraphics[width=30em]{erdsirreader/ivd.jpg} 
+
+\includegraphics[width=40em]{erdsirreader/gemini.jpg} 
+
+\includegraphics[width=40em]{erdsirreader/raidar.jpg} 
+
+Two computer programs in their native habitat -- the memory chips of a
+digital computer -- stalk each other from address to address. Sometimes
+they go scouting for the enemy; sometimes they lay down a barrage of
+numeric bombs; sometimes they copy themselves out of danger or stop to
+repair damage. This is the game I call Core War. It is unlike almost all
+other computer games in that people do not play at all! The contending
+programs are written by people, of course, but once a battle is under
+way the creator of a program can do nothing but watch helplessly as the
+product of hours spent in design and implementation either lives or dies
+on the screen. The outcome depends entirely on which program is hit
+first in a vulnerable area.
+
+The term Core War originates in an outmoded memory technology. In the
+1950's and 1960's the memory system of a computer was built out of
+thousands of ferromagnetic cores, or rings, strung on a meshwork of fine
+wires. Each core could retain the value of one bit, or binary digit, the
+fundamental unit of information. Nowadays memory elements are fabricated
+on semiconductor chips, but the active part of the memory system where a
+program is kept while it is being executed, is still often referred to
+as core memory, or simply core.
+
+Battle programs in Core War are written in a specialized language I have
+named Redcode, closely related to the class of programming languages
+called assembly languages. Most computer programs today are written in a
+high-level language such as Pascal, Fortran or BASIC; in these languages
+a single statement can specify an entire sequence of machine
+instructions. Moreover, the statements are easy for the programmer to
+read and to understand. For a program to be executed, however, it must
+first be translated into "machine language," where each instruction is
+represented by a long string of binary digits. Writing a program in this
+form is tedious at best.
+
+Assembly languages occupy an intermediate position between high-level
+languages and machine code. In an assembly-language program each
+statement generally corresponds to a single instruction and hence to a
+particular string of binary digits. Rather than writing the binary
+numbers, however, the programmer represents them by short words or
+abbreviations called mnemonics (because they are easier to remember than
+numbers). The translation into machine code is done by a program called
+an assembler.
+
+Comparatively little programming is done in assembly languages because
+the resulting programs are longer and harder to understand or modify
+than their high-level counterparts. There are some tasks, however, for
+which an assembly language is ideal. When a program must occupy as
+little space as possible or be made to run as fast as possible, it is
+generally written in assembly language. Furthermore, some things can be
+done in an assembly language that are all but impossible in a high-level
+language. For example, an assembly-language program can be made to
+modify its own instructions or to move itself to a new position in memory.
+
+Core War was inspired by a story I heard some years ago about a
+mischievous programmer at a large corporate research laboratory I shall
+designate X. The programmer wrote an assembly-language program called
+Creeper that would duplicate itself every time it was run. It could also
+spread from one computer to another in the network of the X corporation.
+The program had no function other than to perpetuate itself. Before long
+there were so many copies of Creeper that more useful programs and data
+were being crowded out. The growing infestation was not brought under
+control until someone thought of fighting fire with fire. A second
+self-duplicating program called Reaper was written. Its purpose was to
+destroy copies of Creeper until it could find no more and then to
+destroy itself. Reaper did its job, and things were soon back to normal
+at the X lab.
+
+In spite of fairly obvious holes in the story, I believed it, perhaps
+because I wanted to. It took some time to track down the real events
+that lay behind this item of folklore. (I shall give an account of them
+below.) For now it is sufficient to note that my desire to believe
+rested squarely on the intriguing idea of two programs doing battle in
+the dark and noiseless corridors of core.
+
+Last year I decided that even if the story turned out not to be true,
+something like it could be made to happen. I set up an initial version
+of Core War and, assisted by David Jones, a student in my department at
+the University of Western Ontario, got it working. Since then we have
+developed the game to a fairly interesting level.
+
+Core War has four main components: a memory array of 8,000 addresses,
+the assembly language Redcode, an executive program called MARS (an
+acronym for Memory Array Redcode Simulator) and the set of contending
+battle programs. Two battle programs are entered into the memory array
+at randomly chosen positions; neither program knows where the other one
+is. MARS executes the programs in a simple version of time-sharing, a
+technique for allocation the resources of a computer among numerous
+users. The two programs take turns: a single instruction of the first
+program is executed, then a single instruction of the second, and so on.
+
+What a battle program does during the execution cycles allotted to it is
+entirely up to the programmer. The aim, of course, is to destroy the
+other program by ruining its instructions. A defensive strategy is also
+possible: a program might undertake to repair any damage it has received
+or to move out of the way when it comes under attack. The battle ends
+when MARS comes to an instruction in one of the programs that cannot be
+executed. The program with the faulty instruction -- which presumably is
+a casualty of war -- is declared the loser.
+
+Much can be learned about a battle program merely by analyzing its
+actions mentally or with pencil and paper. To put the program to the
+test of experience, however, one needs access to a computer and a
+version of MARS. The programs could be made to operate on a personal
+computer, and Jones and I have prepared brief guidelines for those who
+would like to set up a Core War battlefield of their own. (For a copy of
+the guidelines send your name and address and $2 for postage and
+handling to Core War, Scientific American, 415 Madison Avenue, New York,
+N.Y., 10017. Delivery may take a few weeks.)
+
+Before describing Redcode and introducing some simple battle programs, I
+should say more about the memory array. Although I have noted that it
+consists of 8,000 addresses, there is nothing magical about this number;
+a smaller array would work quite well. The memory array differs from
+most computer memories in its circular configuration; it is a sequence
+of addresses numbered from 0 to 7999 but it thereupon rejoins itself, so
+that address 8000 is equivalent to address 0. MARS always reduces an
+address greater than 7999 by taking the remainder after division by
+8000. Thus if a battle program orders a hit at address 9378, MARS
+interprets the address as 1378.
+
+Redcode is a simplified, special-purpose assembly-style language. It has
+instructions to move the contents of one address in memory to another
+address, to alter the contents arithmetically and to transfer control
+forward or backward within a program. Whereas the output of a real
+assembler consists of binary codes, the mnemonic form of a Redcode
+instruction is translated by MARS into a large decimal integer, which is
+then stored in the memory array; each address in the array can hold one
+such integer. It is also MARS that interprets the integers as
+instructions and carries out the indicated operations.
+
+A list of the elementary Redcode instructions is given in the top
+illustration on page 19.  With each instruction the programmer is
+required to supply at least one argument, or value, and most of the
+instructions take two arguments. For example, in the instruction JMP
+-7 the mnemonic JMP (for "jump") is followed by the single argument
+-7. The instruction tells MARS to transfer control to the memory
+address seven places before the current one, that is, seven places
+before the JMP -7 instruction itself. If the instruction happened to
+be at address 3715, execution of the program would jump back to
+address 3708.
+
+This method of calculating a position in memory is called relative
+addressing, and it is the only method employed in Redcode. There is no
+way for a battle program to know its own absolute position in the memory
+array.
+
+The instruction MOV 3 100 tells MARS to go forward three addresses, copy
+what it finds there and deliver it 100 addresses beyond the MOV
+instruction, overwriting whatever was there. The arguments in this
+instruction are given in "direct" mode, meaning they are to be
+interpreted as addresses to be acted on directly. Two other modes are
+allowed. Preceding an argument with an @ sign makes it "indirect." In
+the instruction MOV @3 100 the integer to be delivered to relative
+address 100 is not the one found at relative address 3 but rather the
+one found at the address specified by the contents of relative address
+3. (The bottom illustration on page 19  gives more detail on the
+process of indirect addressing.) A # sign makes an argument "immediate,"
+so that it is treated not as an address but as an integer. The
+instruction MOV #3 100 causes the integer 3 to be moved to relative
+address 100.
+
+Most of the other instructions need no further explanation, but the data
+statement (DAT) requires some comment. It can serve as a work space to
+hold information a program may need to refer to. Strictly speaking,
+however, it is not an instruction; indeed, any memory location with a
+zero in its first decimal position can be regarded as a DAT statement
+and as such is not executable. If MARS should be asked to execute such
+an "instruction," it will not be able to and will declare that program
+the loser.
+
+The decimal integer that encodes a Redcode instruction has several
+fields, or functional areas [see middle illustration on page 19]. The
+first digit represents the mnemonic itself, and two more digits
+identify the addressing mode (direct, indirect or immediate). In
+addition four digits are set aside for each argument. Negative
+arguments are stored in complement form: -1 would be represented as
+7999, since in the circular memory array adding 7999 has the same
+effect as subtracting 1.
+
+The instructions making up a simple battle program called Dwarf are
+listed in the illustration on page 20. Dwarf is a very stupid but very
+dangerous program that works its way through the memory array
+bombarding every fifth address with a zero. Zero is the integer
+signifying a nonexecutable data statement, and so a zero dropped into
+an enemy program can bring it to a halt.
+
+Assume that Dwarf occupies absolute addresses 1 through 4. Address 1
+initially contains DAT -1, but execution begins with the next
+instruction. ADD #5 -1. The effect of the instruction is to add 5 to the
+contents of the preceding address, namely the DAT -1 statement, thereby
+transforming it into DAT 4. Next Dwarf executes the instruction at
+absolute address 3, MOV #0 @-2. Here the integer to be moved is 0,
+specified as an immediate value. The target address is calculated
+indirectly in the following way. First MARS counts back two addresses
+from address 3, arriving at address 1. It then examines the data value
+there, namely 4, and interprets it as an address relative to the current
+position; in other words, it counts four places forward from address 1
+and hence deposits a 0 at address 5.
+
+The final instruction in Dwarf, JMP -2, creates an endless loop. It
+directs execution back to absolute address 2, which again increments the
+DAT statement by 5, making its new value DAT 9. In the next execution
+cycle a 0 is therefore delivered to absolute address 10. Subsequent 0
+bombs will fall on addresses 15, 20, 25 and so on. The program itself is
+immobile but its artillery threatens the entire array. Eventually Dwarf
+works its way around to addresses 7990, 7995 and then 8000. As far as
+MARS is concerned, 8000 is equal to 0, and so Dwarf has narrowly avoided
+committing suicide. Its next missile again lands on address 5.
+
+It is sobering to realize that no stationary battle program that has
+more than four instructions can avoid taking a hit from Dwarf. The
+opposing program has only three options: to move about and thereby elude
+the bombardment, to absorb hits and repair the damage or to get Dwarf
+first. To succeed through the last strategy the program may have to be
+lucky: it can have no idea where Dwarf is in the memory array, and on
+the average it has about 1,600 execution cycles before a hit is
+received. If the second program is also a Dwarf, each program wins 30
+percent of the time; in 40 percent of the contests neither program
+scores a fatal hit.
+
+Before taking up the other two strategies, I should like to introduce a
+curious one-line battle program we call Imp. Here it is:
+
+: MOV 0 1
+
+
+Imp is the simplest example of a Redcode program that is able to
+relocate itself in the memory array. It copies the contents of relative
+address 0 (namely MOV 0 1) to relative address 1, the next address. As
+the program is executed it moves through the array at a speed of one
+address per cycle, leaving behind a trail of MOV 0 1 instructions.
+
+What happens if we pit Imp against Dwarf? The barrage of zeros laid
+down by Dwarf moves through the memory array faster than Imp moves,
+but it does not necessarily follow that Dwarf has the advantage. The
+question is: Will Dwarf hit Imp even if the barrage does catch up?
+
+If Imp reaches Dwarf first, Imp will in all probability plow right
+through Dwarf's code. When Dwarf's JMP -2 instruction transfers
+execution back two steps, the instruction found there will be Imp's MOV
+0 1. As a result Dwarf will be subverted and become a second Imp
+endlessly chasing the first one around the array. Under the rules of
+Core War the battle is a draw. (Note that this is the outcome to be
+expected "in all probability." Readers are invited to analyze other
+possibilities and perhaps discover the bizarre result of one of them.)
+
+Both Imp and Dwarf represent a class of programs that can be
+characterized as small and aggressive but not intelligent. At the next
+level are programs that are larger and somewhat less aggressive but
+smart enough to deal with programs in the lower class. The smarter
+programs have the ability to dodge an attack by copying themselves out
+of trouble. Each such program includes a segment of code somewhat like
+the one named Gemini, shown in the lower illustration on
+page 22. Gemini is not intended to be a complete battle program. Its
+only function is to make a copy of itself 100 addresses beyond its
+present position and then transfer execution to the new copy.
+
+The Gemini program has three main parts. Two data statements at the
+beginning serve as pointers; they indicate the next instruction to be
+copied and its destination. A loop in the middle of the program does the
+actual copying, moving each instruction in turn to an address 100 places
+beyond its current position. On each transit through the loop both
+pointers are incremented by 1, thereby designating a new source and
+destination address. A compare instruction (CMP) within the loop tests
+the value of the first data statement; when it has been incremented nine
+times, the entire program has been copied, and so an exit from the loop
+is taken. One final adjustment remains to be made. The destination
+address is the second statement in the program and it has an initial
+value of DAT 99; by the time it is copied, however, it has already been
+incremented once, so that in the new version of the program it reads DAT
+100. This transcription error is corrected (by the instruction MOV #99
+93) and then execution is transferred to the new copy.
+
+By modifying Gemini it is possible to create an entire class of battle
+programs. One of these, Juggernaut, copies itself 10 locations ahead
+instead of 100. Like Imp, it tries to roll through all its opposition.
+It wins far more often than Imp, however, and leads to fewer draws,
+because an overwritten program is less likely to be able to execute
+fragments of Juggernaut's code. Bigfoot, another program employing the
+Gemini mechanism, makes the interval between copies a large prime
+number. Bigfoot is hard to catch and has the same devastating effect on
+enemy code as Juggernaut does.
+
+Neither Bigfoot nor Juggernaut is very intelligent. So far we have
+written only two battle programs that qualify for the second level of
+sophistication. They are too long to reproduce here. One of them,
+which we call Raidar, maintains two "pickets" surrounding the program
+itself [see illustration on page 18]. Each picket consists of 100
+consecutive addresses filled with 1's and is separated from the
+program by a buffer zone of 100 empty addresses. Raidar divides its
+time between systematically attacking distant areas of the memory
+array and checking its picket addresses. If one of the pickets is
+found to be altered, Raidar interprets the change as evidence of an
+attack by Dwarf, Imp or some other unintelligent program. Raidar than
+copies itself to the other side of the damaged picket, restores it,
+constructs a new picket on its unprotected side and resumes normal
+operation.
+
+In addition to copying itself a battle program can be given the ability
+to repair itself. Jones has written a self-repairing program that can
+survive some attacks, although not all of them. Called Scanner, it
+maintains two copies of itself but ordinarily executes only one of them.
+The copy that is currently running periodically scans the other copy to
+see if any of its instructions have been altered by an attack. Changes
+are detected by comparing the two copies, always assuming that the
+executing copy is correct. If any bad instructions are found, they are
+replaced and control is transferred to the other copy, which then begins
+to scan the first one.
+
+So far Scanner remains a purely defensive program. It is able to survive
+attacks by Dwarf, Imp, Juggernaut and similar slow-moving aggressors --
+at least if the attack comes from the right direction. Jones is
+currently working on a self-repair program that keeps three copies of
+itself.
+
+I am curious to see whether readers can design other kinds of
+self-repairing programs. For example, one might think about maintaing
+two or more copies of a program even though only one copy is ever
+executed. The program might include a repair section that would refer to
+an extra copy when restoring damaged instructions. The repair section
+could even repair itself, but it might still be vulnerable to damage at
+some positions. One measure of vulnerability assumes that a single
+instruction has been hit; on the average, how many such instruction, if
+they are hit, ultimately cause the program to die? By this measure, what
+is the least vulnerable self-repairing program that can be written?
+
+Only if reasonably robust programs can be developed will Core War reach
+the level of an exciting game, where the emphasis is shifted from
+defense to offense. Battle programs will then have to seek out and
+identify enemy code and mount an intensive attack wherever it is found.
+
+I may have given the impression that Redcode and the entire MARS
+system are fixed. They are not. In spare moments we have been
+experimenting with new ideas and are certainly open to suggestions.
+Indeed, we have been experimenting so much with new programs and new
+features that some battles remain to be fought in our own system.
+
+One idea we have been playing with is to include an extra instruction
+that would make self-repair or self-protection a little easier. The
+instruction PCT A would protect the instruction at address A from
+alteration until it is next executed. How much could the vulnerability
+of a program be reduced by exploiting an instruction of this kind?
+
+In the guidelines offered above we describe not only the rules of Core
+War but also how to set up a memory array and write a MARS system in
+various high-level languages. We also suggest how to display the results
+of a Core War battle. For now the following rules define the game with
+enough precision to enable pencil-and-paper players to begin designing
+programs:
+
+1. The two battle programs are loaded into the memory array at random
+positions but initally are no closer than 1,000 addresses.
+
+2. MARS alternates in executing one instruction from each program until
+it reaches an instruction that cannot be executed. The program with the
+erroneous instruction loses.
+
+3. Programs can be attacked with any available weapon. A "bomb" can be a
+0 or any other integer, including a valid Redcode instruction.
+
+4. A time limit is put on each contest, determined by the speed of the
+computer. If the limit is reached and both programs are still running,
+the contest is a draw.
+
+The story of Creeper and Reaper seems to be based on a compounding of
+two actual programs. One program was a computer game called Darwin,
+invented by M. Douglas McIlroy of AT&T Bell Laboratories. The other was
+called Worm and was written by John F. Shoch of the Xerox Palo Alto
+Research Center. Both programs are some years old, allowing ample time
+for rumors to blossom. (Darwin was described in Software: Practice and
+Experience, Volume 2, pages 93-96, 1972. A vague description of what
+appears to be the same game is also given in the 1978 edition of
+Computer Lib.)
+
+In Darwin each player submits a number of assembly-language programs
+called organisms, which inhabit core memory along with the organisms of
+other players. The organisms created by one player (and thus belonging
+to the same "species") attempt to kill those of other species and occupy
+their space. The winner of the game is the player whose organisms are
+most abundant when time is called. McIlroy invented an unkillable
+organism, although it won only "a few games." It was immortal but
+apparently not very aggressive.
+
+Worm was an experimental program designed to make the fullest use
+possible of minicomputers linked in a network at Xerox. Worm was loaded
+into quiescent machines by a supervisory program. Its purpose was to
+take control of the machine and, in coordination with Worms inhabiting
+other quiescent machines, run large applications programs in the
+resulting multiprocessor system. Worm was designed so that anyone who
+wanted to use one of the occupied machines could readily reclaim it
+without interfering with the larger job.
+
+One can see elements of both Darwin and Worm in the story of Creeper and
+Reaper. In Core War, Reaper has becom reality.
+
+*** A Core War bestiary of viruses, worms and other threats to computer memories
+
+*by A. K. Dewdney*
+
+\includegraphics[width=40em]{erdsirreader/applewo.jpg} 
+
+\includegraphics[width=40em]{erdsirreader/pctloop.jpg} 
+
+\includegraphics[width=40em]{erdsirreader/redcode2.jpg} 
+
+When the column about Core War appeared last May, it had not occurred
+to me how serious a topic I was raising. My descriptions of
+machine-language programs, moving about in memory and trying to destroy
+each other, struck a resonant chord. According to many readers, whose
+stories I shall tell, there are abundant examples of worms, viruses and
+other software creatures living in every conceivable computing
+environment. Some of the possibilities are so horrifying that I hesitate
+to set them down at all.
+
+The French spy thriller /Softwar: La Guerre Douce/ (English translation
+to be published by Holt, Rinehart & Windston) provides a geopolitical
+fantasy of this type. Authors Thierry Breton and Denis Beheich spin a
+chilling yarn about the purchase by the Soviet Union of an American
+supercomputer. Instead of blocking the sale, American authorities,
+displaying studied reluctance, agree to the transaction. The computer
+has been secretly programmed with a "software bomb." Ostensibly bought
+to help with weather forecasting over the vast territory of the Soviet
+Union, the machine, or rather its software, contains a hidden trigger;
+as soon as the U.S. National Weather Service reports a certain
+temperature at St. Thomas in the Virgin Islands, the program proceeds to
+subvert and destroy every piece of software it can find in the Soviet
+network. To the extent that such scenarios represent real possibilities,
+I am tempted to say, "If we must have war, by all means let it be soft."
+On the other hand, the possibility of an accident due to the intimate
+connection between military software and weapons-control systems gives
+me pause.
+
+Before I describe the experiences of various readers with hostile
+programs it would be worthwhile to summarize Core War for those who
+missed the May 1984 column:
+
+Two players write one program each in a low-level language called
+REDCODE. The programs are placed in a vast, circular arena called Core.
+In reality Core is simply an array of several thousand locations whose
+last address is contiguous to the first. Each battle-program instruction
+occupies one location in Core. A Memory Array Redcode Simulator
+executive program (MARS for short) runs the battle programs by
+alternately executing one instruction of each, in the manner of a simple
+time-sharing system: the two programs attack each other and seek in turn
+to avoid damage or to repair it. A simple mode of attack can be executed
+by means of MOV instructions. For example,
+
+: MOV #0 1000
+
+
+causes the number 0 to be placed in the location whose address lies
+1,000 locations beyond this instruction. The previous contents of that
+location are thereby erased. If the 0 were placed on top of an enemy
+instruction, it too would be wiped out and the program would no longer
+be executable. The enemy would lose the game.
+
+Since no computer, whether personal or mainframe, comes equipped with
+REDCODE and a convenient battle array, such features must be simulated.
+Guidelines for writing a simulation program were and still are available
+from the offices of /Scientific American/ at a cost of $2 to cover
+postage and handling. Please address your request to Core War,
+/Scientific American/, 415 Madison Avenue, New York, N.Y. 10017. Last
+year several hundred readers obtained the guidelines and a large
+percentage of them wrote Core War game programs.
+
+Inspired by a June 1959 /Scientific American/ article on
+self-reproducing mechanisms by L. S. Penrose, Frederick G. Stahl of
+Chesterfield, Mo., created a miniature linear universe in which humble
+creatures lived, moved and (after a fashion) lived out their destinies.
+Stahl writes:
+
+"Like Core War, I set aside a closed, linear segment of main memory in
+which a creature was simulated by modified machine language. The machine
+was an IBM Type 650 with drum memory. The creature was programmed to
+crawl through its universe eating food (nonzero words) and creating a
+duplicate of itself when enough food was accumulated. Like Core War, I
+had an executive program which kept track of who was alive and allocated
+execution time among the living creatures. I called it the 'Left Hand of
+God.'" Stahl goes on to discuss his program's ability to reproduce. He
+also describes an interesting mutation mechanism; a program being copied
+might experience a small number of random changes in its code. However,
+Stahl reports, "I abandoned this line of work after one production run
+in which a sterile mutant ate and killed the only fertile creature in
+the universe. It was apparent that extraordinarily large memories and
+long computer runs would be needed to achieve any interesting results."
+
+A similar story concerns a game called Animal in which a program tries
+to determine what animal a human is thinking of by playing a form of
+Twenty Questions. David D. Clark of the Massachusetts Institute of
+Technology Laboratory for Computer Science writes that the employees of
+a certain company devotedly played Animal. While it resembles neither a
+battle program nor even Stahl's simple creatures, Animal achieved the
+ability to reproduce itself in the corridors of core through the efforts
+of a programmer to enhance a key feature of the game: when the program
+guesses incorrectly what animal the human has in mind, it asks the human
+to suggest a question it might ask to improve its future performance.
+This feature, Clark continues, led the programmer to invent a certain
+trick for making sure that everyone always had the same version of Animal.
+
+"On a very early computer system, which lacked any shared directory
+structure, but also lacked any protection tools, a programmer invented a
+very novel way of making the game available to several users. A version
+of the game existed in one user's directory. Whenever he played the
+game, the program made a copy of itself into another directory. If that
+directory had previously contained a copy of the game, then the old
+version was overwritten, which made the behavior of the game change
+unexpectedly to the player. If that directory had previously had no
+version of Animal, the game had been offered to yet another user."
+
+Clark recalls that Animal was such a popular game that eventually every
+directory in the company system contained a copy. "Furthermore, as
+employees of the company were transferred to other divisions...they took
+Animal as well, and thus it spread from machine to machine within the
+company." The situation would never have become serious had it not been
+for the fact that all those copies of this otherwise innocuous game
+began to clog the disk memory. Only when someone devised a more
+"virulent" version of the game was the situation brought under control.
+When the new version of Animal was played, it copied itself into other
+directories not once but twice. Given enough time, it was thought, this
+program would eventaully overwrite all the old versions of Animal. After
+a year had passed, a certain date triggered each copy of the new Animal
+program. "Instead of replicating itself twice whenever it was invoked,
+it now played one final game, wished the user 'goodbye' and then deleted
+itself. And thus Animal was purged from the system."
+
+Ruth Lewart of Homdel, N.J., once created a monster (of sorts) without
+even writing a program. Working on her company's time-sharing system,
+she was preparing a demonstration version of a teaching program when she
+decided to make a backup copy on another time-sharing system. When the
+original system began to seem sluggish, she "switched to the backup
+system, which was very responsive -- for all of three minutes, by which
+time there was no response and utter chaos on the screen of my graphics
+terminal. It was not possible for any user to log on or to log off from
+the system. The conclusion was inescapable -- my program was somehow at
+fault! Despite my panic, I suddenly realized that I had specified an
+ampersand as the terminal's field separator character. But the ampersand
+was also the character used by the computer system to spawn a background
+process! The first time the computer read from the screen, it must have
+intercepted the ampersands meant for the terminal, and spawned a number
+of processes, which in turn each spawned more processes, ad infinitum."
+A frantic long-distance call informed a system administrator of the
+source of the disease and the mainframe computer was then shut down and
+restarted. Needless to say, Lewart changed the ampersand to a less
+dangerous character. Her program "has been humming happily ever since."
+
+Even though Core War programs are not spawned in this manner, additional
+copies can enhance their survival. Several readers suggested three
+copies of a program be made so that the copy currently executing could
+use the other two copies to determine whether any of its instructions
+were wrong. The executing program could even replace a faulty
+instruction with a viable one. A similar idea lies behind Scavenger, a
+program designed to protect mass-storage files from error when backup
+copies are made on magnetic tape. Arthur Hudson, who lives in Newton,
+Mass. (and works for yet another unnamed company), writes: "Anyone who
+used much magnetic tape found himself beset by an alien force called the
+Law of Joint Probability." Hudson goes on to cite various errors
+connected with the handling of tapes and shows that, although each kind
+of error has a relatively small chance of happening, the probability or
+at least one of them occurring is uncomfortably large. He continues:
+
+"Fear not, Scavenger is with you; If you place a mass-storage file in
+its care, it will copy the file on three magnetic tapes without
+bothering you with housekeeping details. Even if the computer crashes
+logically (as it did several times per day), the run backlog usually
+will not be destroyed; when the computer comes back up, whatever
+Scavenger worms are in the backlog will run in their turn. Each tape is
+written by a separate run scheduled from a master runstream."
+
+Owners of Apple computers should beware a mean little program called
+Apple Worm, created by Jim Hauser and William R. Buckley of California
+Polytechnic State University at San Luis Obispo. Written for the Apple
+II in 6502 assembly language, this species of worm replicates itself on
+a merry little journey through the host Apple. Initially one loads a
+special BASIC program [/see illustration on preceding page
+/] that in turn loads the
+worm into low memory (the part with low addresses). The BASIC program,
+on the other hand, occupies high memory.
+
+"Because the Worm is loaded into one of the graphics areas of the
+machine, you can watch the Worm as it begins it headlong (actually,
+tail-long) dash into high memory.... After the Worm leaves the graphics
+window... you can wait until the Worm erases all of high memory
+(including the BASIC program) and crashes into the system ROMS."
+
+Hauser and Buckley plan to publish a collection of worms in the not too
+distant future. They have designed a Worm Operating System and have even
+written a video game with Worm as one of its main characters.
+
+Another software threat has been propounded by Roberto Cerruti and Marco
+Morocutti of Brescia, Italy. Inspired by the translation of the column
+on Core War in the Italian edition of /Scientific American, Le Scienze/,
+the two sought a way of infecting the Apple II computer, not with a worm
+but with a virus. Reports Erruti:
+
+"Marco thought to write a program capable of passing from one computer
+to the other, like a virus, and 'infecting' in this way other Apples.
+But we were not able to conceive it unil I realized that the program had
+to 'infect' floppy disks, and use the computers only like a media from a
+disk to the other. So our virus began to take shape.
+
+"As you know every Apple diskette contains a copy of the Disk Operating
+System, which is bootstrapped by the computer at power on. The virus was
+an alteration in this DOS, which at every write operation checked his
+presence on the disk and, if not, would modify in the same way the DOS
+on the disk, thus copying itself on every diskette put in the drive
+after the first power up. We thought that installing such a DOS on some
+disks used in the biggest computer shop in out city, Brescia, would
+cause an epidemic to spread in the city.
+
+"But was it a real epidemic, of such unharming viruses? No, our virus
+should be malignant! So we decided that after 16 self-reproduction
+cycles, counted on the disk itself, the program should decide to
+re-initialize the disk immediately after bootstrap. Now the awful evil
+of our idea was clear, and we decided neither to carry it out, nor to
+speak to anybody about our idea."
+
+That was kind of Cerruti and Morocutti. In a personal computer the disk
+operating system is the ultimate arbiter of the fate of programs, data
+and all else. In the scheme just described the infected disk operating
+system erases the disk whence it came and can therefore never be loaded
+again except from a new disk. The diseased DOS could even cause an
+irritating message to be displayed periodically:
+
+IS YOUR DISK
+SLIPPING?
+It's time you got
+DOS DOCTOR
+available on disk at a
+computer store near you
+
+The viral infection just described has already happened on a small
+scale. Richard Skrenta, Jr., a high school student in Pittsburgh, wrote
+such a program. Instead of wiping disks or displaying advertisements,
+this form of infection caused subtle errors to appear throughout the
+operating system.
+
+"All of this seems pretty juvenile now," writes Skrenta, but "Oh woe to
+me! I have never been able to get rid of my electronic plague. It
+infested all of my disks, and all of my friends' disks. It even managed
+to get onto my math teacher's graphing disks." Skrenta devised a program
+to destroy the virus, but it was never as effective as the virus itself
+had been.
+
+There is a good problem implicit here and I would be both unimaginative
+and irresponsible for not posing it; In one page or less describe DOS
+DOCTOR, a program on disk that somehow stamps out such electronic
+epidemics. Many disks used by a personal computer contain copies of its
+DOS. When started up, the computer obtains its copy of the DOS from the
+disk. This DOS will still be in charge when other disks, also containing
+copies of the DOS, are run. If it is infected, the DOS currently in
+charge may alter the other copies of the DOS or even replace them with
+copies of itself. But how to counteract such virulence?
+
+In the initial version of Core War the main challenge was to enable
+battle program A to protect itself from stray hits generated by battle
+program B. If such protection could be more or less guaranteed, then
+evolution of the game was to proceed to the next level, where programs
+would have been forced to seek each other out and develop concentrated
+attacks.
+
+In an effort to guarantee such protection, I suggested in the May column
+the instruction
+
+: PCT A
+
+where A is the relative address (either direct or indirect) of an
+instruction that is to be protected. A single attempt to change the
+contents of that address would be prevented by MARS, the game's
+supervisory system. The next attempt, however, would succeed. It
+seemed to me that by employing a simple loop, any battle program could
+protect all its own instructions from stray bombs long enough to be
+able to launch an undistracted probe for the other program. The
+illustration on this page displays such a self-protecting program in
+schematic form. The protection loop consists of six instructions, four
+of them executed at each cycle through the loop. Thus a battle program
+of /n/ instructions (including the loop) would require nearly 4 x /n/
+executions to have complete protection from a single hit. This
+salutary shielding is hardly proof against a dwarf program that hurls
+two shots at each location.
+
+There is another use of this instruction, unforeseen in the earlier Core
+War article. Stephen Peters of Timaru, New Zealand, and Mark A. Durham
+of Winston-Salem, N.C., independently thought of using PCT offensively.
+A program called TRAP-DWARF lays down a barrage of zeros in the usual
+way but then protects each deposit against overwriting. This means that
+an unwary enemy program may fall into one of these traps in the course
+of writing inself into a new area. The instruction meant for the
+location occupied by a protected zero would of course have no effect on
+that location. Later, when the new program's execution reaches that
+address, it dies because 0 is not an executable instruction. PCT may be
+worthy of inclusion in some future version of Core War but I shall
+shelve it for now in the interest of simplicity, the game designer's
+touchstone.
+
+Other reader ideas varied from the two-dimensional Core array suggested
+by Robert Norton of Madison, Wis., to the range-limitation rule
+suggested by William J. Mitchell of the mathematics department at
+Pennsylvania State University. Norton's idea is largely self-explanatory
+but Mitchell's suggestion requires some elaboration. Allow each battle
+program to alter the contents of any location up to a distance of some
+fixed number of addresses. Such a rule automatically keeps DWARF from
+doing any damage outside this neighborhood. The rule has many other
+effects as well, including a strong emphasis on movement. How else can a
+battle program get within range of an opponent? The rule has much merit
+and I hope that some of the many readers with a Core War system of their
+own will give it the further exploration it deserves.
+
+Norton also suggests that each side in a Core War battle be allowed more
+than one execution. The same idea occurred to many other readers.
+Indeed, I have decided to adopt the suggestion. Core War now assumes a
+previously lacking wide-open character.
+
+The change is made by adding the following instruction, called a
+split, to the official Core War list [/see illustration on page 14/].
+
+: SPL A
+
+
+When execution reaches this point, it splits into two parts, namely the
+instruction following SPL and the one A addresses away. Because this
+immediately allows each Core War player to have several programs running
+at once, it is necessary to define how MARS will allocate such
+execution. Two possibilities exist.
+
+To illustrate them suppose one player has programs A1, A2 and A3,
+whereas the other player has programs B1 and B2. One alternative is to
+have all the first player's programs run, followed by those of the
+second player. The order of execution would thus be A1, A2, A3 and then
+B1 and B2. The cycle would repeat indefinitely. The second alternative
+is to have the programs of the two players alternate. In this case the
+sequence would be A1, B1, A2, B2, A3, B1 and so on. The two schemes are
+quite different in effect. The first scheme puts great emphasis on
+unlimited proliferation and seems thereby to limit the role of
+intelligence in the game. The second scheme, however, implies that the
+more programs either player has running, the less often each will be
+executed. A low of diminishing returns seems appropriate in this context
+and I have therefore adopted the second scheme. The purpose of the game,
+in any event, is to bring all enemy programs to a halt.
+
+The new instruction is rife with creative possibilities. As an
+illustration of the humblest issue possible, there is a battle program
+called IMP GUN:
+
+#+BEGIN_EXAMPLE
+SPL 2
+JMP -1
+MOV 0 1
+#+END_EXAMPLE
+
+
+Consider what happens when execution first arrives at the top of this
+program. The instruction SPL 2 means there will be two executions
+allotted to this program later: both JMP -1 and MOV 0 1 will be
+performed. The first instruction causes the program to recycle and the
+second sets an IMP in motion. The IMP will move down, of course, since
+the target of the MOV command will always be the next address, as
+indicated by they (positive) 1. The IMP's run pattering through Core
+bent on the destruction or subversion of hostile programs. At first
+glance it may seem that no defense is possible against such an army of
+IMP's, but in fact one is. Enter IMP PIT, an even simpler program set in
+motion by an SPL command in some larger assembly of instructions wishing
+to protect its upper flank:
+
+#+BEGIN_EXAMPLE
+MOV #0 -1
+JMP -1
+#+END_EXAMPLE
+
+At each execution, IMP PIT places a zero just above itself in the hope
+of zapping an oncoming IMP. Here the execution-allocation rule is
+critical. If IMP GUN belongs to A and IMP PIT belongs to B, then A needs
+/n/ turns to execute /n/ IMP's; only one IMP can arrive at the location
+just above the IMP PIT. Other things being equal, B has to execute IMP
+PIT only once to terminate an arriving IMP.
+
+In the expanded Core War game, one imagines each side generating and
+deploying small armies of programs individually shaped to detect,
+attack, protect and even repair. Many subtleties such as the one
+suggested by John McLean of Washington, D.C., await further
+investigation. McLean imagines a specialized trap program that places
+JMP commands at various addresses throughout the Core array in the hope
+of landing a JMP command inside an enemy program. Each JMP so placed
+would transfer execution of the enemy program to the trap program,
+causing it to go over to the enemy, so to speak.
+
+One major problem in need of resolution emerges from the melee of battle
+programs. What is to prevent a battle program for one side from
+attacking its colleagues? A recognition system appears to be necessary.
+
+Among the many readers who have constructed Core War systems three
+deserve special mention: Chan Godfrey of Wilton, Conn., Graeme R. McRae
+of Monmouth Junction, N.J., and Make Rosing of Littleton, Colo., have
+taken special care in defining and documenting their projects. I should
+particularly like to make Rosing's documents available to readers, but
+there is another and better idea that includes this possibility and
+solves other communication problems as well. If any reader with a Core
+War system already running will volunteer to act as the director of a
+Core War network, then documentation of various systems, rule
+suggestions, interesting programs and battles can be communicated to all
+participating Core War users. One volunteer will be chosen as director;
+the remaining volunteers might help with potential functions such as a
+newsletter, rules committee and so on, according to interest. In a
+future article I shall give the name and address of the network director.
+
+*** Of worms, viruses and Core War
+
+*by A. K. Dewdney*
+
+\includegraphics[width=40em]{erdsirreader/dos.jpg} 
+
+\includegraphics[width=40em]{erdsirreader/redcode4.jpg} 
+
+"The only truly secure system is one that is powered off, cast in a
+block of concrete and sealed in a lead-lined room with armed guards --
+and even then I have my doubts." --Eugene H. Spafford
+
+The knock on the door had a palpable urgency that brought the
+computer-center director's head up sharply from the pile of papers
+before him. He grunted loudly and the computer operator entered.
+
+"Something's gone wrong. We have some very weird processes going on.
+We're running out of memory. I think we've got a virus in the system."
+
+If the center had been equipped with claxons, the director would
+undoubtedly have set them off.
+
+Such a scene has been played out in one form or another all too often in
+recent years, and as a result computer viruses have been increasingly in
+the news. In fact, this department has been cited more than once in
+connection with the rash of virus outbreaks, probably because it is an
+instigator of Core War, a game in which computer programs are purposely
+designed to destroy one another. But, as we shall see, Core War has no
+direct connection with the infections.
+
+To understand how a computer virus works one must first understand in
+great detail the system in which it operates. The same thing applies for
+understanding the operation of worms, logic bombs and other threats to
+computer security. This simple observation has two immediate
+implications. First, journalists are likely to misreport or distort
+virus news stories for quite innocent reasons: most reporters are more
+or less mystified by the internal workings of computers. Second, public
+descriptions of a computer virus -- even fairly detailed ones -- cannot
+be exploited to reconstruct the virus except by someone who has the
+requisite knowledge of the affected computer system to begin with. A
+knowledgeable "technopath" who is bent on destroying other people's
+programs and data hardly needs to read a magazine or newspaper article
+to begin imagining ways to construct a virus. There is consequently no
+harm in describing how viruses and other destructive programs work.
+(Indeed, such a description is probably constructive in that it might
+stimulate efforts to protect computer systems.)
+
+One must distinguish from the start between the two commonest types of
+malignant programs. A virus rides piggyback on other programs; it cannot
+exist by itself. A worm, on the other hand, can pursue an independent
+existence, more in the manner of a bacterium. Both kinds of "infection,"
+like all programs, depend on an operating system.
+
+Most readers know that a running computer consists of both hardware and
+software. In front of me at the moment, for example, is a piece of
+hardware: an Apple IIc. Inside the machine's memory is software: a
+program called the Appleworks Word Processor. The program transfers the
+characters I type on the keyboard into a section of memory reserved by
+the program for text.
+
+But the word-processing program is not able to run by itself. The
+program depends on an operating system that, among other things,
+translates it into a special machine language that enables the hardware
+to carry out the program's instructions. The operating system for a
+personal computer normally resides on a disk. To do anything on such a
+machine (from writing to playing games), the disk operating system (DOS)
+must first be loaded into the computer's hardware memory. In a home
+computer the DOS is usually loaded automatically from a disk, which may
+or may not contain the program one wants to run, as soon as one switches
+on the computer.
+
+To run a particular program on my personal computer, I must type the
+name of the program into the computer. The computer's DOS then searches
+through the disk for a program with that name, loads it into memory and
+runs it -- instruction by instruction -- as is shown in the middle
+illustration on the opposite page.
+
+In loading the program the DOS sets aside part of the hardware memory
+not only for the program but also for the program's "work space." Here
+the program will store all the values assigned to its variables and its
+arrays, for example. In doing all of this the DOS is normally careful
+not to overwrite other programs or data areas, including whatever part
+of the DOS happens to be in memory. The DOS is equally careful in
+storing programs or data onto a disk.
+
+Often a programmer may find it necessary to employ the commands the DOS
+itself uses, which can generally be found in the appropriate manual.
+Such commands make it possible to write a subprogram that can read files
+from disk into memory, alter the files and then write them back onto the
+disk -- sometimes with malicious intent.
+
+Here is a sample virus subprogram that does just that. It contains a
+mixture of pseudo-DOS commands and subroutines: small, internal programs
+(whose component instructions are kept separate from the subprogram's
+main body) that carry out specific missions whenever they are called.
+
+#+BEGIN_EXAMPLE
+/this/ := findfile
+LOAD /(this)/
+/loc/ := search /(this)/
+insert /(loc)/
+STORE /(this)/
+#+END_EXAMPLE
+
+The subroutine designated findfile opens the directory of executable
+files, or programs, on a disk, picks a random file name and assigns the
+name of that file to a variable called /this/. The next line of the
+program makes use of the pseudo-DOS command LOAD to copy the file into
+the computer's memory. Another subroutine called search then scans the
+program just loaded, looking for an instruction in it that can serve as
+a suitable insertion site for a virus. When it finds such an
+instruction, it determines the instruction's line number and assigns its
+value to the variable called /loc/.
+
+At this point the virus subprogram is ready to infect the program it has
+randomly picked. The subroutine insert replaces the selected instruction
+with another instruction (such as a call for a subroutine) that
+transfers execution to a block of code containing the basic virus
+subprogram, which is appended to the end of the program. It then adds
+the program's original instruction to the end of the appended subprogram
+followed by a command that transfers execution to the instruction
+following the insert in the host program.
+
+In this way when the virus subprogram is executed, it also executes
+its host program's missing instruction. The execution of the original
+program can then proceed as though nothing unusual had occurred. But
+in fact the virus subprogram has momentarily usurped control of the
+DOS to replicate itself into another program on the disk. The process
+is illustrated graphically at the right in the illustration
+below. When the newly infected program is subsequently loaded by the
+DOS into the computer's memory and run, it will in turn infect another
+program on the disk while appearing to run normally.
+
+As early as 1984 Fred S. Cohen carried out controlled infection
+experiments at the University of Southern California that revealed -- to
+his surprise -- that viruses similar to the one I have just described
+could infect an entire network of computers in a matter of minutes. In
+order to explain the kinds of damage such viruses can do, I shall adapt
+Cohen's generic virus, writing it in a pseudolanguage.
+
+1234567
+main program:
+1. infect
+2. if trigger pulled, then do damage
+3. go to host program
+subroutine: infect
+1. get random executable file
+2. if first line of file = 1234567, then go to 1, else prepend virus to file
+subroutine: trigger pulled
+subroutine: do damage
+
+Cohen's generic virus is generic in all but its attachment site: instead
+of inserting itself in the middle or at the end of the host program, it
+attaches itself to the beginning. The first line of the virus program is
+the "recognition code" 1234567. The main program first calls up the
+subroutine infect, which randomly retrieves an executable file from a
+disk and checks whether the first line of that file happens to be
+1234567. If it is, the program has already been infected and the
+subroutine picks another program. If the subroutine happens to find an
+uninfected file, it "prepends" the entire virus program to the target
+program. This means simply that it places itself at the head of the
+program and arranges to get itself executed first before transferring
+control back to the infected program.
+
+The next two subroutines call for a triggering condition and for some
+damage to be done. The triggering condition might be a certain date
+reached by the system clock, or perhaps the deletion of a certain
+employee's name from the payroll file. The damage to be done might be
+the erasure of all files or, more subtly, the random alteration of bits
+in just a few places. The possibilities are endless.
+
+Triggering conditions and damage bring us to the edge of moral
+territory. I think there is no question that willfully perpetrating
+damage to computer files by means of a virus or other destructive
+program is a reprehensible act. Computer programs and data are not just
+impersonal strings of 0's and 1's but also miniature cities of thought.
+Why would anyone want to destroy the work of another?
+
+Writers of virus programs do so for a variety of reasons. For example, a
+programmer in a large company might secretly harbor a grudge against the
+company's management. He might implant a virus for the day his
+employment is terminated. When that happens, his records will be deleted
+from the payroll file, triggering the virus. As a result, valuable
+company data and programs might either disappear or develop serious and
+costly errors. Replacing faulty data and programs with backups stored on
+other media might be of no avail, since if the backups were made
+recently, they too might be infected.
+
+Of course, the kind of destruction just described would ordinarily take
+place in a multiple-user computer system. The operating system in this
+kind of computer environment is considerably more complex than a disk
+operating system for a personal computer. For one thing, the fact that
+so many users share the same facilities requires an operating system
+that protects users as much as possible from inadvertent or deliberate
+interference. Even here, however, viruses are possible, but they require
+much more sophistication. Usually they exploit a flaw in some part of
+the operating system -- a bug, so to speak -- as was evidenced by the
+"virus" (actually it was a worm) that spread thoughout the Internet last
+fall.
+
+During the evening of November 2, 1988, someone ran a worm program on
+one of the several thousand North American computers interconnected
+through a data-communications network called the Internet. The network
+connects machines at universities, businesses, Government agencies such
+as the National Aeronautics and Space Administration and even some
+military installations. With frightening speed the worm spread to more
+than 1,000 machines during that evening and the next day. As copies of
+the worm proliferated, operators of individual systems noticed memory
+utilization soaring and machine response becoming sluggish. The worm did
+not attack files or other programs, however. It seemed content merely to
+proliferate throughout as many host machines as possible. Even so, the
+damage in lost time was immense.
+
+As I mentioned above, a worm is a program that pursues an independent
+existence within a computer; it moves from computer to computer on its
+own, leaving duplicates of itself in each machine. The Internet worm
+consisted of two parts, a vector and a body. Starting from a given host
+computer, the worm would seek a new host by sending its vector to
+another computer. Once inside the machine, the vector would establish a
+communication link through which the worm's body could be sent. Details
+of this attack were revealed by Eugene H. Spafford of Purdue University
+in a 40-page document a few weeks after the event. One example of the
+worm's operation shows the cleverness of its creator.
+
+UNIX, the operating system of choice on many of the Internet computers,
+allows processes to take place in the computer that are not associated
+with any particular user. Such independent processes are called demons.
+One demon, called fingerd (pronounced fingerdee), enables users to get
+information about other users. Such a service is desirable in a
+computing environment in which users must share programs and data for
+research and development purposes.
+
+The worm in its current host computer would send a message to one of the
+other potential host computers on its list (which was obtained
+illegally). In requesting the services of the fingerd demon, the worm
+gave it some information, just as an ordinary user might. But the worm
+supplied so much information to the demon that the data filled the space
+reserved for it in the computer's memory and overflowed into a
+"forbidden" area.
+
+The area that was thus overwritten was normally reserved for
+instructions that fingerd consulted in deciding what to do next. Once
+inside such an area the worm (whose body still inhabited the original
+host machine) invoked a so-called command interpreter of the new
+machine, effectively claiming a small piece of the UNIX operating system
+all to itself. After the command interpreter was at its disposal, the
+worm transmitted some 99 lines of source code constituting the vector.
+On the worm's command, the unwitting potential host then compiled and
+ran the vector's program, virtually guaranteeing infection.
+
+The vector program hid itself in the system by changing its name and
+deleting all files created during its entry into the system. After doing
+that it established a new communication channel to the previous host
+and, using standard system protocols, copied over the files making up
+the main body of the worm.
+
+Once inside a new host computer, the worm's main job was to discover the
+names and addresses of new host machines by breaking into areas reserved
+for legitimate users of the system. To do so it relied on an elaborate
+password-guessing scheme that, owing to the carelessness with which most
+users choose passwords, proved rather successful. When it had a
+legitimate user's password, the worm could pretend to be the user in
+order to read what he or she may have had in the computer's memory and
+to discover the names of other computers in the Internet that it could
+also infect.
+
+According to Spafford, most of the UNIX features (or "misfeatures," as
+he calls them) that allowed the worm to function as it did have been
+fixed. Yet the fact has not allayed his worries about computer security,
+as the quotation at the beginning of this article reveals. Perhaps he
+was thinking of Cohen's theoretical investigation of viruses, which
+might apply to worms just as well.
+
+If technopaths insist on vandalizing computer systems, it may be time to
+form a Center for Virus Control. During the Internet worm crisis teams
+at the University of California at Berkeley and a few other Internet
+stations were able to capture copies of the worm, analyze its code and
+determine how it worked. It would seem reasonable to establish a
+national agency that would combat computer viruses and worms whenever
+and wherever they break out -- particularly if computer infections are
+destined to increase. Although the Internet experience hinted at the
+horrors that may still come, it also showed the efficacy of an organized
+resistance against them.
+
+Cohen has established that it is impossible to write a computer program
+that will detect every conceivable virus, even though a defense can be
+constructed against any given virus. On the other hand, for any such
+defense there are other viruses that can get around it. According to
+Cohen, this ominous state of affairs might subject future computing
+environments to a kind of evolution in which only the fittest programs
+would survive.
+
+The situation is reminiscent of Core War, a computer game I have written
+about in previous comumns [see /SCIENTIFIC AMERICAN/, May, 1984, March,
+1985, and January, 1987]. But a Core War program does not bully innocent
+systems. It picks on someone its own size: another Core War program. The
+two programs engage in subtle or blatant conflict in a specially
+reserved area of a computer's memory called the coliseum. There is no
+danger of a Core War program ever escaping to do damage in the real
+world, because no Core War program or anything like it would ever run
+effectively in a normal computing environment. Core War programs are
+written in a language called Redcode that is summarized in the table on
+the opposite page.
+
+Perhaps a simple example of such a program will serve to introduce the
+game to readers not already familiar with it. Here is a program called
+DWARF that launches a 0-bomb into every fifth memory location:
+
+#+BEGIN_EXAMPLE
+DAT -1
+ADD #5 -1
+MOV #0 @-2
+JMP -2
+#+END_EXAMPLE
+
+The memory coliseum that all Core War programs inhabit consists of
+several thousand addresses, or numbered memory cells, arranged in a long
+strip. The instructions that make up DWARF, for example, occupy four
+consecutive addresses in the coliseum, say 1001, 1002, 1003 and 1004.
+
+The DAT statement serves to hold a value that will be used by the
+program (in this case -1) at the address 1001. The ADD statement adds
+the number 5 to the location that is -1 units away from the ADD
+statement. Since the ADD statement has address 1002, it adds 5 to the
+number stored at the previous address, namely 1001, changing the -1 to a
+4. The MOV command moves the number 0 into the memory cell referred to
+by @-2. Where is that? The address is found by referring to the DAT
+statement two lines in front of the MOV command. There one finds the
+address where the program will put the number 0. The final command, JMP,
+causes execution of the DWARF program to jump back two lines, to the ADD
+command. This begins the process all over again.
+
+The second time around, DWARF will change the contents of the DAT cell
+to 9 and then deliver a 0 to that memory address. If an enemy program
+happens to have an instruction at that address, it will be rendered
+inoperable and the program will perhaps "die" as a result.
+
+In this manner DWARF goes on dropping 0-bombs on every fifth location
+until it reaches the end of memory -- but memory never ends, because the
+last address is contiguous to the first. Consequently DWARF's bombs
+eventually begin to fall nearer and nearer to itself. Yet because DWARF
+is only four instructions long and the number of memory cells is
+normally a multiple of 10, DWARF avoids hitting itself and lives to
+fight on -- albeit blindly and rather stupidly.
+
+Over the past few years Core War has evolved into a rather sophisticated
+game with numerous strategies and counterstrategies. There are programs
+that spawn copies of themselves, that launch hordes of mindless one-line
+battle programs and that even repair themselves when they are hit.
+
+The International Core Wars Society, which currently has its
+headquarters in Long Beach, Calif., and branches in Italy, Japan,
+Poland, the Soviet Union and West Germany, organizes annual tournaments
+in which a programmer's skills are put to the test. Readers interested
+in joining a Core War chapter should contact William R. Buckley at 5712
+Kern Drive, Huntington Beach, Calif. 92649.
+
+In the 1987 tournament the Japanese entries gave the North American
+warrior programs a run for their money. The winner of the most recent
+tournament, held last December in Los Angeles, was a program from the
+Soviet Union called, oddly enough, COWBOY. Written by Eugene P. Lilitko
+of Pereslavl-Zalesky, a small city north-east of Moscow, COWBOY appeared
+to watch for "bombing runs" by enemy programs, to move itself out of
+harm's way and then to retaliate massively. Lilitko won the first prize
+of $250. The second prize of $100 went to Luca Crosara of Pistoia,
+Italy. The third prize of $50 was won by Douglas McDaniels of
+Alexandria, Va.
+
+In closing I quote Spafford once again: "Writing and running a virus is
+not the act of a computer professional but a computer vandal." Let those
+who would even contemplate such an act try Core War instead.
+
+I should like to thank Cohen, Spafford and John Carroll, a
+computer-security expert at the University of Western Ontario, for help
+with this article.
+
+*** ...
+
+#+BEGIN_EXAMPLE
+                            REDCODE REFERENCE
+ 
+Simulator: pMARS
+Version: 0.8.0
+Standard: ICWS'94 draft (extended)
+ 
+Language elements not currently in the draft are labeled with *, those
+added in this version of pMARS are labeled with +.
+ 
+________________________________________
+Opcodes:
+ 
+    DAT     terminate process
+    MOV     move from A to B
+    ADD     add A to B, store result in B
+    SUB     subtract A from B, store result in B
+    MUL     multiply A by B, store result in B
+    DIV     divide B by A, store result in B if A <> 0, else terminate
+    MOD     divide B by A, store remainder in B if A <> 0, else terminate
+    JMP     transfer execution to A
+    JMZ     transfer execution to A if B is zero
+    JMN     transfer execution to A if B is non-zero
+    DJN     decrement B, if B is non-zero, transfer execution to A
+    SPL     split off process to A
+    SLT     skip next instruction if A is less than B
+    CMP     same as SEQ
+    SEQ     (*) Skip next instruction if A is equal to B
+    SNE     (*) Skip next instruction if A is not equal to B
+    NOP     (*) No operation
+    LDP     (+) Load P-space cell A into core address B
+    STP     (+) Store A-number into P-space cell B
+ 
+________________________________________
+Pseudo opcodes:
+ 
+    [labels] EQU text            replaces [labels] by text
+            [EQU text]           (*) multi-line EQU: text continues
+ 
+             ORG start           specifies execution start
+ 
+             END [start]         end of assembly (optional execution start)
+ 
+    [count]  FOR expression      (*) repeat enclosed instructions "expression"
+             ROF                 times, counter is incremented starting with 01
+ 
+             PIN number          (+) P-space identification number, warriors
+                                 with same number share P-space
+ 
+________________________________________
+Modifiers:
+ 
+    .A   Instructions read and write A-fields.
+ 
+    .B   Instructions read and write B-fields.
+ 
+    .AB  Instructions read the A-field of the A-instruction  and
+         the B-field of the B-instruction and write to B-fields.
+ 
+    .BA  Instructions read the B-field of the A-instruction  and
+         the A-field of the B-instruction and write to A-fields.
+ 
+    .F   Instructions read both A- and B-fields of  the  the  A-
+         and  B-instruction and write to both A- and B-fields (A
+         to A and B to B).
+ 
+    .X   Instructions read both A- and B-fields of  the  the  A-
+         and  B-instruction  and  write  to both A- and B-fields
+         exchanging fields (A to B and B to A).
+ 
+    .I   Instructions read and write entire instructions.
+ 
+________________________________________
+Addressing modes:
+ 
+    #       immediate
+    $       direct
+    @       indirect using B-field
+    <       predecrement indirect using B-field
+    >       postincrement indirect using B-field
+    *       (*) indirect using A-field
+    {       (*) predecrement indirect using A-field
+    }       (*) postincrement indirect using A-field
+ 
+________________________________________
+Directives:
+ 
+    ;redcode                code follows, preceding text is ignored
+    ;name                   name of warrior follows
+    ;author                 name of author follows 
+    ;assert                 (*) expression that must evaluate to true
+    ;trace [off]            (*) toggle trace bit for following instructions
+    ;break                  (*) set trace bit for next instruction
+    ;debug [static|off]     (*) enable/disable setting [static] trace bits
+ 
+________________________________________
+Predefined variables (*):
+ 
+    CORESIZE          value of -s parameter (default: 8000)
+    MAXPROCESSES      value of -p parameter (default: 8000)
+    MAXCYCLES         value of -c parameter (default: 80000)
+    MAXLENGTH         value of -l parameter (default: 100)
+    MINDISTANCE       value of -d parameter (default: 100)
+    ROUNDS            (+) value of -r parameter (default: 1)
+    PSPACESIZE        (+) value of -S parameter (default: 1/16th CORESIZE)
+    CURLINE           current line in generated assembly (starts with 0)
+    VERSION           pMARS version ("60" is v0.6.0)
+    WARRIORS          number of warriors specified on command line
+ 
+________________________________________
+Expression operators:
+ 
+    Arithmetic:
+        +   addition or unary plus
+        -   subtraction or unary minus
+        /   division
+        %   modulo (remainder of division)
+ 
+    Comparison (*):
+        ==  equality
+        !=  inequality
+        <   less than
+        >   greater than
+        <=  less than or equal
+        >=  greater than or equal
+ 
+    Logical (*):
+        &&  and
+        ||  or
+        !   unary negation
+ 
+    Assignment (*):
+    =   (to register variables a..z)
+ 
+    Comparison and logical operators return 1 for true and 0 for false.
+    Parentheses can be used to override this precedence order:
+ 
+    1) ! - + (unary)
+    2) * / %
+    3) - + (binary)
+    4) == != < > <= >=
+    5) &&
+    6) ||
+    7) =
+ 
+________________________________________
+Redcode grammar:
+ 
+statement_list :: statement statement_list | e ;
+statement :: normal_stmt<1> |
+             equ_stmt       |
+             forrof_stmt    |
+             comment_stmt   |
+             substitution_stmt<2> ;
+ 
+num       :: [0-9] ;
+number    :: num number | num ;
+alpha     :: [a-zA-Z] | "_" ;
+alphanum  :: alpha | num ;
+alphanums :: alphanum alphanums | e ;
+ 
+label  :: alpha alphanums ;
+label1 :: label label1 | label ;
+labels :: label1 "\n" labels | label1 ;
+stringization :: stringization"&"label | label ;
+ 
+this_string :: (^\n)* ;
+comment     :: ";" this_string "\n" | e ;
+ 
+equ_stmt    :: labels equ_strings ;
+equ_string  :: "equ" this_string comment "\n" ;
+equ_strings :: equ_string "\n" equ_strings | equ_string ;
+ 
+forrof_stmt :: labels index "for" expression<3> comment "\n"
+               statement_list
+               "rof" this_string "\n" ;
+index       :: label
+ 
+comment_stmt  :: info_comment | debug_comment | ignore ;
+ignore        :: ";" this_string "\n" ;
+info_comment  :: ";redcode" this_string "\n" |
+                 ";" "name" this_string "\n" |
+                 ";" "author" this_string "\n" |
+                 ";" "date" this_string "\n" |
+                 ";" "version" this_string "\n" |
+                 ";" "assert" expression<4> "\n" ;
+debug_comment :: ";" debug "\n" | ";" trace "\n" | ";" break "\n" ;
+debug         :: "debug" | "debug" "off" | "debug" "static" ;
+trace         :: "trace" | "trace" "off" ;
+break         :: "break" ;
+ 
+Note:
+----
+1. Normal statements are statements in the following form:
+   opcode [address mode] operand [, [address mode] operand] [comment]
+   More details about the grammar are given in the '88 or '94 proposal.
+ 
+2. Substitution statements are labels that have been declared by EQU.
+   If a label is declared this way: "IMP_instr equ imp mov imp, imp + 
+   1", the label name IMP_instr can be thought of as a statement.  
+   Therefore, whenf IMP_instr is used after its declaration, it will 
+   be replaced by "imp mov imp, imp + 1". It has effect of declaring 
+   a label 'imp' and inserting the statement 'mov imp, imp + 1'.
+ 
+3. Valid expression for "FOR" statement is very close to C expression in
+   which operator '()' has the highest precedence, followed by 'unary +,
+   unary -', '*, / and %', 'binary + and binary -', '<, <=, >, >=',
+   '==, !=', '&&', '||', and the lowest '='.
+   Beside numbers, it can also has labels as its terms. All of its labels
+   have to be declared before "FOR" statement is invoked.
+4. Valid expression for "ASSERT" statement is the same as that for "FOR".
+ 
+Case sensitivity
+----------------
+ 
+Opcode and pseudo-opcode names are case insensitive; labels are case
+sensitive.
+ 
+Label declaration
+-----------------
+Labels are declared in three ways:
+ o Using EQU. When a label name that first appears (has not been declared)
+   is declared with EQU, all subsequent occurences of that label name
+   will be replaced by the strings following the EQU.
+ 
+   The following equates label THIS with "num + 1". THIS equ num + 1.
+ 
+   If the string substituting the label contains other labels, those labels
+   are also replaced by their substituting string. Recursive reference of
+   labels are flagged as error.
+ 
+   More than one statement can be declared as a label name. To achieve this,
+   declare a blank label with EQU following the statement that declares
+   as part of equation of a named EQU label. Thus, the declaration of the
+   following:
+   core_clear equ spl 0
+              equ mov 2, <-1
+              equ jmp -1
+   causes three statements are declared as strings of label core_clear.
+ 
+ o As an offset relative to the current normal statement. If some labels 
+   appear just before any '88 or '94 opcodes, they are automatically 
+   declared as constants that are relative to the current statement.
+   For example:
+   first spl first                0000 spl 0
+   imp   mov imp, imp + 1  -----> 0001 mov 0, 1
+ 
+ o As an index belonging to FOR statement. Unlike other statements, labels
+   declared with FOR consist of two ingredients: the last label serving
+   as FOR index and the remaining labels serving as the same offset pointing
+   at the first of the FOR statement. This allows the implementation of
+   base[index] kind.
+ 
+   This declaration:
+   base
+   index for 3
+         mov base, base + index - 1
+         rof
+ 
+   translates into:
+   0000 mov 0, 0
+   0001 mov 0, 1
+   0002 mov 0, 2
+ 
+Stringization and declaration inside FOR/ROF:
+--------------------------------------------
+ 
+FOR 5
+imp mov imp, imp + 5
+ROF
+ 
+Declaration of the above example causes the assembler to complain for
+duplicating declarations. pMARS however offers the stringization feature
+to accomplish the same goal. Its syntax is: label"&"label"&"...
+The first label can be any valid alphanums and it goes untranslated.
+The rest of the labels have to be a FOR index and it is to be substituted
+accordingly. Thus:
+ 
+N FOR 5
+  imp&N mov imp&N, imp&N + 1
+  ROF
+ 
+are expanded into:
+imp01 mov imp01, imp01 + 5
+imp02 mov imp02, imp02 + 5
+imp03 mov imp03, imp03 + 5
+imp04 mov imp04, imp04 + 5
+imp05 mov imp05, imp05 + 5
+ 
+It is then correctly compiled.
+ 
+The following form is also valid:
+ 
+prime01 equ 2
+prime02 equ 3
+prime03 equ 5
+prime04 equ 7
+prime05 equ 11
+ 
+N FOR 5
+  dat prime&N
+  ROF
+ 
+The conjunction of FOR statements and EQU statements:
+----------------------------------------------------
+ 
+If labels that are not stringized are declared inside FOR/ROF statements,
+the result is duplicating declaration. Although in the future it might be
+allowed, it is well-advised that such labels are to be declared outside of
+the FOR/ROF block.
+ 
+If FOR statements are declared as strings of a label name using EQU such as:
+THIS EQU N FOR 3
+     EQU   mov 0, 3
+     EQU   ROF
+ 
+The expansion of such is feasible providing that both the FOR and ROF are
+present in the same label name.
+ 
+Therefore, the following will not work:
+THIS EQU N FOR 3
+THAT EQU   ROF
+ 
+THIS
+ mov 0, 3
+THAT
+ 
+or
+ 
+TEST EQU N FOR 3
+ mov 0, 3
+ ROF
+ 
+PMARS parsing background
+------------------------
+Parsing is done in three steps:
+1. Reading from input
+2. First pass assembly
+3. Second pass assembly
+ 
+- During reading: info_comment is parsed, comments to be ignored are removed,
+  the remaining are copied into memory. If the first ';redcode' appears,
+  all the current contents are erased from memory. Reading is continued
+  until it encounters the next ';redcode'. Reading always stops when it
+  encounters a line containing a word END or end-of-file.
+- During the first pass, all labels are collected. All expansions and
+  removals are done in this pass. All labels before opcode are substituted
+  if they have been declared or declared otherwise. All labels after opcode
+  are preserved for the second pass. This allows forward declaration
+  mechanism for labels after opcode.
+- During the second pass, no labels are declared and collected. There is
+  no further statement expansions and removals. All labels that have not
+  been substituted are substituted. Syntax checking to meet with '88 or '94
+  requirement is done in this stage.
+ 
+$Id: redcode.ref,v 1.5 1995/07/30 18:47:11 stst Exp stst $
+#+END_EXAMPLE
+
+** Befunge
+
+The Befunge FAQ v.4 - /Last updated November 4, 1997/
+------------------------------------------------------------------------
+*-1) History*
+
+The Befunge Mini-FAQ was first authored by Ben Olmstead, on May 21,
+1997. Then Pascal decided to mess with it a bit, and claim that he was
+maintaining it or something. He also removed the 'Mini-'.
+
+Many thanks are owed (in no particular order) to Chris Pressey, Ben
+Olmstead, Francis Irving, and Johannes Keukelaar for their contributions
+to this FAQ.
+
+------------------------------------------------------------------------
+*0) Table of Contents:*
+
+1) General Information
+    1.1) What is Befunge?
+    1.2) Oh.  Wow.  So, what is Befunge good for?
+    1.3) What versions of Befunge are there?
+    1.4) What Befunge resources are there?
+    1.5) OK.  I'm hooked.  What other nifty things can you point me at?
+2) Befunge Programming
+    2.1) How does wrapping work?
+    2.2) How does time travel work?
+3) WTF...
+    3.1) is WTF?
+    3.2) is a TM (Turing Machine)?
+    3.3) does TC (Turing-Complete) mean?
+    3.4) is the halting problem?
+    3.5) is a BEMD (BEM device)?
+    3.6) is LiS (Lost in Space)?
+    3.7) are Wierd, Cracked, etc.?
+    3.8) is YAPL?
+
+------------------------------------------------------------------------
+*1.1) What is Befunge?*
+
+Befunge is an interpreted, two-dimensional, stack-based programming
+language originally created in 1993 by Chris Pressey.
+
+Basically, Befunge is the first language (to our knowledge) to allow the
+program counter to move not only forwards and back, but also sideways.
+The source code for the language looks like garbage. It has been
+described as "a cross between Forth and Lemmings."
+
+Doesn't that make it all clear? Well, we'll start with a simple "Hello,
+world." program (all of you people who know what you're doing, I know
+that there are redundancies.):
+
+#+BEGIN_EXAMPLE
+0".dlrow ,olleH">v
+                ,:
+                ^_@
+#+END_EXAMPLE
+
+The *Instruction Pointer* starts at the upper-left-hand corner, heading
+right. It first encounters '0'. '0' means 'push the number 0'. Simple,
+right? OK. Next, it hits '"'. '"' toggles what is known as *stringmode*.
+In stringmode, the ASCII equivalent of each character gets pushed onto
+the stack as it is encountered. So, the '.' gets pushed first, then the
+'d', and so on. It is important to remember that the stack is last in,
+first out, so the 'H', which gets pushed last, is going to come off the
+stack first. Because of this, essentially every string constant in
+Befunge appears backwards with respect to which direction the IP is moving.
+
+So, the IP get finished pushing our message, and hits the second '"'.
+This time, the IP is already in stringmode, so it turns it off. The IP
+then encounters '>'. '>' tells the IP to start moving towards the right,
+but since it is already moving right, this doesn't do anything. The next
+instruction, 'v', tells the IP to start moving downward.
+
+The IP begins moving downward and hits ':'. ':' is the 'duplicate'
+instruction: it takes whatever is at the top of the stack and makes a
+copy of it. So now there are two copies of 'H' on the top of the stack.
+The next instruction, '_' is called 'horizontal if'. It pops the top
+item off the stack, and if it is 0, tells the IP to go right, otherwise
+it tells the IP to go left. Since 'H' is obviously not 0, the IP goes to
+the left. Notice that, because we used ':', there is still a copy of 'H'
+on the stack.
+
+The IP now reaches '^'. '^' is, guess what, 'up'. I think you know by
+now what that means. Next, it reaches ','. ',' means 'print character'.
+So, it pops the 'H' off the stack, and prints it out. The next item on
+the stack is now 'e'.
+
+The IP now reaches that same 'right' command, and starts moving to the
+right, then down, then duplicates 'e', then goes left, then up, then
+prints 'e'. It does the same thing with each character, until it comes
+to the 0 at the bottom of the stack. When it reaches the 0, the '_'
+instruction tells the IP to go RIGHT, not left, and the IP reaches '@'.
+'@' is 'end program'.
+
+That was a terribly quick and somewhat dirty look at Befunge. I glossed
+over a few points, and that particular "Hello, World" program is not the
+"best". (One usually determines the best Befunge program by how small it
+is.) However, it should be enough to give you a taste of the language.
+
+------------------------------------------------------------------------
+*1.2) Oh. Wow. So, what is Befunge good for?*
+
+Befunge is NOT good for:
+
+  * Writing an OS.
+  * Writing a reasonably-sized program.
+  * Speed-sensitive applications.
+  * Just about anything practical. 
+
+Befunge IS good for:
+
+  * A good laugh.
+  * Amazing your friends, amusing your colleagues.
+  * Whiling away bored hours when you really should be working.
+  * Expanding your horizons. (Infinitely, even.) 
+
+
+
+------------------------------------------------------------------------
+*1.3) What versions of Befunge are there?*
+
+*Befunge-93* is the original Befunge language created in '93 by Chris
+Pressey. It is set, it is standard, no one is likely to change it. (Nor
+use it much anymore, for that matter.)
+
+*Befunge-96* used to exist as a malformed half-standard, before January
+1997 came around without anything happening to it. Don't bother
+implementing it or writing anything in it. The current standard is '97,
+below.
+
+*Befunge-97* is a working standard for 1997. It is defined and
+maintained by the people on the Befunge mailing list by general
+approval. There is no hard and fast rule for what is 'general approval',
+but a good rule of thumb is 'nobody (who is talking, at least) has any
+disagreements'. You can pretty safely assume that whatever is in
+Befunge-97 will stay.
+
+The working '97 standard itself is stored at Chris Pressey's web page
+(See below). The expected date for solidification of the standard is
+about October 1997, but don't take this as a promise.
+
+There are also several developmental concepts for the use of Befunge,
+including but not limited to:
+
+  * *BefBots* is similar to C-Robots in intent; Befunge programs control
+    robots which attack each other.
+  * *BeGlad* (Befunge Gladiators) is more like Core Wars; Programs
+    written in a modified version of Befunge-97 actually attack within
+    Befunge-space itself, trying to force the other program to run out
+    of processes and die.
+  * *Bevolve* is an attempt to modify the Befunge command set to better
+    accomodate the evolution of Befunge programs in an open enviornment.
+  * *Bef**** is a general label applied to efforts to have a minimal
+    instruction set for a two-dimensional language; The name derives
+    from Befunge and Brainf***. 
+
+
+
+------------------------------------------------------------------------
+*1.4) What Befunge resources are there?*
+
+So far, there are three web pages and a mailing list:
+
+Got a nifty Befunge program or idea for the future of Befunge? Then
+submit it to the Befunge mailing list <mailto:befunge@cats-eye.com>, a
+little group of freaks who actually *like* toying with Befunge. It is
+currently responsible for maintaining the Befunge-97 Standard. To
+subscribe to the befunge mailing list, send a message with the subject
+"subscribe [email address]" to befunge-request@cats-eye.com
+<mailto:befunge-request@cats-eye.com>. To unsubscribe, send a message
+with the subject "unsubscribe [email address]" to the same place. All
+messages sent to befunge@cats-eye.com <mailto:befunge@cats-eye.com> will
+be distributed to everyone on the mailing list.
+
+(Also, although it probably hasn't propagated very far yet, the
+newsgroup alt.lang.funge has purportedly been created for wide-ranging
+discussion on anything even remotely connected to *funges.)
+
+Chris Pressey <mailto:cats-eye@cats-eye.com>, the original creator of
+Befunge, has a very nice Befunge web page.
+<https://web.archive.org/web/20010417044912/http://www.cats-eye.com/cet/soft/lang/befunge/>
+
+On his site:
+
+  * the official Befunge-93 interpreter
+  * the Befunge-93 specification
+  * the working Befunge-97 standard
+  * a large number of Befunge sources
+  * information on how to subscribe to the Befunge mailing list 
+
+Jason Reed <mailto:jreed@itis.com> (alias Pascal) also has a page
+<https://web.archive.org/web/20010417044912/http://www.loungelizard.com/pascal/befunge/>
+devoted to Befunge.
+On his site:
+
+  * the source for bp, a Befunge-97 interpereter written in perl
+  * a few sources that he has written
+  * this FAQ 
+
+Ben Olmstead <mailto:bem@mad.scientist.com> (alias Bug-eyed Monster or
+just BEM), a random person, has a site
+<https://web.archive.org/web/20010417044912/http://www.geocities.com/SiliconValley/Way/3571/befunge.html>
+devoted to Befunge, which is sometimes just a bit out of date...
+On his site:
+
+  * the semi-official Befunge-97 interpreter (in nearly-ANSI C),
+  * the semi-official Befunge-X interpreter (actually, uses the same
+    source files),
+  * a port of Chris Pressey's Befunge-93 interpreter to Windows95 by
+    Kevin Vigor (including a much-improved debugger, with source)
+  * a large number of Befunge sources, including all the ones from
+    Chris' and Pascal's sites. 
+
+
+
+------------------------------------------------------------------------
+*1.5) OK. I'm hooked. What other nifty things can you point me at?*
+
+If you like befunge, you may enjoy:
+
+Orthogonal
+<https://web.archive.org/web/20010417044912/http://www.muppetlabs.com/~breadbox/orth/home.html>:
+updated Orthogonal interpreter. Orthogonal was one of the first
+2-dimensional languages, but Befunge beats it by a year. Still, it is an
+independent look at 2-D programming not offered elsewhere. (And we can
+prove that it is independent because, though Befunge came first, it
+didn't arrive on the 'net until after Orthogonal.)
+
+The Retrocomputing Museum
+<https://web.archive.org/web/20010417044912/http://www.ccil.org/retro/retromuseum.html>:
+home of the freaks, brain-damages, and ancients of the computing world.
+Includes a version of "hunt the wumpus" which is sickeningly true to the
+original BASIC version, emulators for OISC and URISC (RISCs taken to
+their logical extreme--single-instruction computers!), I believe an
+emulator for the PDP-11, Algol-60 (I think), BCPL and B, Foogol, and
+many others. Also includes out-of-date versions of Intercal and Orthogonal.
+
+Intercal
+<https://web.archive.org/web/20010417044912/http://www.ccil.org/intercal/>:
+the language designed to be as completely unlike any other as possible
+while still being Turing- complete. It has done well. The most
+recognizable operators are "xor/and/or with self, rolled one bit to the
+left". The character set is, to say the least, creative, including the
+rabbit-ears ("), spot (.), sqiggle (sic) (~), mesh (#), half-mesh (=),
+worm (-), spark ('), and hybrid (;). It has no "if". It has the COME
+FROM command. The simplest way to store the value 65536 to a 32-bit
+variable in Intercal is: :1<-#256~#0 The Intercal ROT-13 program makes a
+decent slowcat when two of them are stuck together, and the Intercal
+prime number generator took 17 hours on a SPARC to generate up to 65535.
+(A task which takes a decent C program 1.5 seconds on a 486/25...) This
+is not a language for the faint of heart, but the manual is far more
+amusing than anything in Befunge.
+
+False
+<https://web.archive.org/web/20010417044912/http://www.cats-eye.com/cet/soft/lang/false/>:
+An interesting, simple, stack-based language. A few nifty features.
+
+BrainF***
+<https://web.archive.org/web/20010417044912/http://www.cats-eye.com/cet/soft/lang/bf/>:
+a language which is even more frightening than Intercal, and about as
+profane as its name. Intercal is a joke; BrainF*** is a perversion.
+There are eight commands, four of which are increments and decrements.
+Two are i/o. The other two are used for loops. If this does not frighten
+you, it should.
+
+The Bad Languages Page
+<https://web.archive.org/web/20010417044912/http://www.cs.bc.edu/~connorbd/badlangs.html>:
+An entire page devoted to links to those wonderfully bad languages:
+Intercal, Orthogonal, Befunge, False, BrainF***, and whatever else can
+be dug up. Most of the sites listed above are linked from here.
+
+Q-BAL
+<https://web.archive.org/web/20010417044912/http://lausd.k12.ca.us/~mshulman/q-bal/>:
+An unimplemented language almost as twisted as Befunge, but queue-based
+instead of stack-based.
+
+------------------------------------------------------------------------
+*2.1) How does wrapping work?*
+
+For various reasons, toroidal wrapping is problematic in Befunge-97.
+Instead, we use a special wrapping technique that has more consistant
+results in this new, more flexible environment. It is called /same-line
+wrapping/.
+
+Same-line wrapping can be described in several ways, but the crucial
+idea it encompasses is this: unless the delta or position of the IP is
+changed by a command, the IP will always wrap such that it returns to
+the instruction it was on before it wrapped.
+
+The mathematical description of same-line wrapping is known as
+/Lahey-space wrapping/, which defines a special topological space. It is
+generally of more interest to topologists and mathematicians than
+programmers. We won't cover it here, but it is included in Appendix A
+[or some other document that we may link to eventually] for completeness.
+
+The algorithmic description of same-line wrapping can be described as
+/backtrack wrapping/. It is more of interest to Befunge Interpreter
+implementers than Befunge programmers. However, it does describe exactly
+how the wrapping /acts/ in terms that a programmer can understand, so we
+will include it here.
+
+When the IP attempts to travel into the whitespace between the code and
+the end of addressable space, it backtracks. This means that its delta
+is reflected 180 degrees and it ignores all instructions. Travelling
+thusly, it finds the other 'edge' of code in a similar way (when there
+is nothing but whitespace in front of it.) It is then reflected 180
+degrees once more (to restore its original delta), stops ignoring, and
+executes the first available instruction.
+
+For example, the following code:
+#+BEGIN_EXAMPLE
+v4
+v >....@
+>11X
+    1
+     2
+      3
+#+END_EXAMPLE
+
+prints out "4 3 2 1 ". When the IP looks for the next instruction after
+the '3', it can't find one in the in the direction of the IP's delta
+((1,1)), so the IP turns around, and finds the last command in opposite
+direction, ie (-1, -1), which happens to be the '4'. The IP turns around
+again, resuming its original delta, and executes the '4', then the '>',
+then the four '.'s, then the '@' and ends.
+
+It is easy to see at this point that the IP remains on the same line:
+thus the name. (Also note that the entire wrapping process takes 0
+ticks, as would be expected from any wrapping process.)
+
+Same-line wrapping has the advantage of being backward-compatible with
+Befunge-93's toroidal wrapping. It also works safely both when the IP
+delta is non-cardinal, and when the size of the program changes.
+
+------------------------------------------------------------------------
+*2.2) How does time travel work?*
+
+Although the 't' (Time Travel) command has not yet been implemented, and
+is not planned for inclusion in *funge-97, it comes up often enough in
+discussion to deserve some explanation. Although no explanation has been
+offered as to /why/ the concept exists, the following message by Chris
+Pressey (suggesting Chronefunge, a variant of Befunge including
+subject-singularity time travel) might help to explain how it works:
+
+    *Chronefunge: Subject-singularity Time-Travel Befunge!*
+
+    This can be done. It's a little horrendous... but it can emulate
+    time-travel. Time is one of the "special" and largely
+    uninterfered-with dimensions of Nefunge, and Chronefunge addresses
+    this "problem".
+
+    First of all, you have to be aware of a fancy-sounding term I just
+    made up, which applies to the science fiction of time travel:
+    subject-singularity time travel.
+
+    Subject-singularity means that history is relative to the subject
+    which is time-travelling. If the subject jumps back in time 100
+    years, the last 100 years of history have been wiped out completely,
+    and the "present time" "starts anew" in the year 1897. Another way
+    to put this is that an act of backwards time-travel is always
+    tantamount to destroying and rewriting history.
+
+    This gets around the Grandfather Paradox (although not elegantly);
+    you go back in time, you kill your grandfather as a child, no
+    problem - you're still in the past, alive, and now making a new
+    history from that point on. You were never born but you're here
+    now... and you know what might come next.
+
+    To get Befunge to do that, first, you have to store a history - a
+    collection of program states including the stack, Befunge-space, and
+    the IP list. This is a lot of data, but not like an unhandlable amount.
+
+    Then, declare a command like t "Time Travel" which takes one
+    argument called tick-delta.
+
+    If tick-delta > 0, freeze this IP in "suspended animation" for
+    tick-delta ticks. Note how simple it is to travel forward in time!
+    "Suspended animation" is completely seperate from playfield and all
+    other IP's: it's as if, to them, this IP didn't even exist for the
+    time it's frozen.
+
+    If tick-delta = 0, do nothing ("time-travel to the present")
+
+    If tick-delta < 0, save the ip -> subject-ip. replace the ENTIRE
+    PROGRAM STATE with the program state history of tick-delta ticks
+    ago. Then add subject-ip back into the program. This IP is now "in
+    the past!"
+
+    Oh what wonderful fun you can have in a language when you disregard
+    entropy. Why, you could have the program display the result "before"
+    it's been calculated!
+
+    A reasonable implementation of this might not even be required to
+    provide a "time machine" (history taker) with an extreme range.
+    Unreasonable arguments like
+
+    	10/t    ; try to go to the Restaurant at the End of the Universe ;
+    	010/-t  ; try to go to the Big Bang Burger Bar ;
+
+    ...should be met with an error/exception if your interpreter only
+    saves a smaller number of program states (like 256) in it's history.
+    By no means is it expected to store MAXMEMSIZE frames of history. t
+    should always make an error/exception if your interpreter doesn't
+    support time-travel.
+
+    And if you travel before the start of the program? Well, it should
+    probably bomb - or encounter empty-Befunge-space, and have the
+    program just suddenly appear "when it should". Or another
+    error/exception?
+
+
+
+------------------------------------------------------------------------
+*3) WTF...*
+
+------------------------------------------------------------------------
+*3.1) is WTF?*
+
+The universal interrogative particle. Oh, you wanted to know WTF the
+point of this section is? Occasionally there arise certain abbrevations,
+concepts, and monstrosities on the befunge mailing list that would
+otherwise confuse the hell out of the casual lurker - this in addition
+to the capability of befunge itself to be confusing. Anyways, this
+section just tries to clear up some common terminology. Now you know.
+
+------------------------------------------------------------------------
+*3.2) is a TM (Turing Machine)?*
+
+(/This section needs revision!/)
+
+------------------------------------------------------------------------
+*3.3) does TC (Turing-Complete) mean?*
+
+A system, machine, programming language, tinkertoy set, etc. is
+considered TC, put simply, when it can simulate any TM. Every personal
+computer, every HP48GX, every Cray, no matter how 'powerful' in terms of
+memory or speed, is exactly TC, no more, no less.
+
+------------------------------------------------------------------------
+*3.4) is the halting problem?*
+
+Suppose you had a computer program (call it H) that could tell just by
+examining another program whether the latter would either a) eventually
+stop or b) run forever. This program would be said to *solve the halting
+problem*. Such a program would be extremely useful - you could feed it a
+program that would stop only when it found a counterexample to, say,
+Goldbach's Conjecture^* , and it could (in a finite amount of time) tell
+you if it had any counterexamples at all.
+
+However, imagine another program, based on H, called U, which responds
+to the program you feed it in a certain way: if the input program stops,
+then U will enter an infinite loop, and if U determines that the input
+program doesn't ever stop, then U stops. Clearly, if H exists, then
+modifying it to become U is possible, even trivial.
+
+Now the fun starts. Ask U, innocently, whether U itself stops. If U
+stops, then it doesn't, then it does, then it doesn't, etc. Thus, U
+can't exist, because it leads to a contradiction, and H can't exist
+either. *The Halting Problem Can Not Be Solved*
+
+^* Goldbach's conjecture asserts that every sufficiently large even
+number can be expressed as the sum of two primes. To the editor's
+knowledge, it is still undecided.
+
+------------------------------------------------------------------------
+*3.5) is a BEMD (BEM device)?*
+
+Bem Olmstead, alias BEM, mentioned working on the idea of a program or dev
+
+** Brainfuck
+
+I started to think about a BF interpreter written in BF, and because I
+did not want to write BF code directly, I started with writing a C
+program that could generate BF code for often used constructs. After
+some experimentation, I decided to implement a direct execution mode
+(making use of a define), so that I didn't have to go through the
+generate-interpret cycle. This resulted in the BF interpreter in BF
+generation <http://www.iwriteiam.nl/Ha_genbfi_c.txt> program. If the
+macro symbol EXECUTE is not defined, this program when executed
+generates a BF interpreter in BF. This BF interpreter expects as input a
+BF program terminated with an exclamation mark, followed by the input
+for the program to be interpreted. I by no means claim that this BF
+interpreter in BF is the shortest possible. (Actually, NYYRIKKI wrote a
+much short one <http://www.iwriteiam.nl/Ha_vs_bf_inter.html> and Daniel
+B. Cristofani <http://www.hevanet.com/cristofd/> an even shorter one
+<http://www.hevanet.com/cristofd/dbfi.b>.)
+
+The BF interpreter in BF (when filtered through a comment remover
+<http://www.iwriteiam.nl/Ha_bfrmcom_c.txt>) looks like:
+
+#+BEGIN_EXAMPLE
+>>>,[->+>+<<]>>[-<<+>>]>++++[<++++++++>-]<+<[->>+>>+<<<<]>>>>[-<<<<+>>
+>>]<<<[->>+>+<<<]>>>[-<<<+>>>]<<[>[->+<]<[-]]>[-]>[[-]<<<<->-<[->>+>>+
+<<<<]>>>>[-<<<<+>>>>]<<<[->>+>+<<<]>>>[-<<<+>>>]<<[>[->+<]<[-]]>[-]>]<
+<<<[->>+<<]>[->+<]>[[-]<<<[->+>+<<]>>[-<<+>>]>++++++[<+++++++>-]<+<[->
+>>+>+<<<<]>>>>[-<<<<+>>>>]<<<[->+>>+<<<]>>>[-<<<+>>>]<[<[->>+<<]>[-]]<
+[-]>>[[-]<<<<->-<[->>>+>+<<<<]>>>>[-<<<<+>>>>]<<<[->+>>+<<<]>>>[-<<<+>
+>>]<[<[->>+<<]>[-]]<[-]>>]<<<<[->>>+<<<]>[->>+<<]>+>[<->[-]]<[<<<<+>>>
+>[-]]<<<[->+>+<<]>>[-<<+>>]>+++++[<+++++++++>-]<<[->>>+>+<<<<]>>>>[-<<
+<<+>>>>]<<<[->+>>+<<<]>>>[-<<<+>>>]<[<[->>+<<]>[-]]<[-]>>[[-]<<<<->-<[
+->>>+>+<<<<]>>>>[-<<<<+>>>>]<<<[->+>>+<<<]>>>[-<<<+>>>]<[<[->>+<<]>[-]
+]<[-]>>]<<<<[->>>+<<<]>[->>+<<]>+>[<->[-]]<[<<<<++>>>>[-]]<<<[->+>+<<]
+>>[-<<+>>]>++++++[<++++++++++>-]<<[->>>+>+<<<<]>>>>[-<<<<+>>>>]<<<[->+
+>>+<<<]>>>[-<<<+>>>]<[<[->>+<<]>[-]]<[-]>>[[-]<<<<->-<[->>>+>+<<<<]>>>
+>[-<<<<+>>>>]<<<[->+>>+<<<]>>>[-<<<+>>>]<[<[->>+<<]>[-]]<[-]>>]<<<<[->
+>>+<<<]>[->>+<<]>+>[<->[-]]<[<<<<+++>>>>[-]]<<<[->+>+<<]>>[-<<+>>]>+++
++++[<++++++++++>-]<++<[->>>+>+<<<<]>>>>[-<<<<+>>>>]<<<[->+>>+<<<]>>>[-
+<<<+>>>]<[<[->>+<<]>[-]]<[-]>>[[-]<<<<->-<[->>>+>+<<<<]>>>>[-<<<<+>>>>
+]<<<[->+>>+<<<]>>>[-<<<+>>>]<[<[->>+<<]>[-]]<[-]>>]<<<<[->>>+<<<]>[->>
++<<]>+>[<->[-]]<[<<<<++++>>>>[-]]<<<[->+>+<<]>>[-<<+>>]>+++++[<+++++++
+++>-]<+<[->>>+>+<<<<]>>>>[-<<<<+>>>>]<<<[->+>>+<<<]>>>[-<<<+>>>]<[<[->
+>+<<]>[-]]<[-]>>[[-]<<<<->-<[->>>+>+<<<<]>>>>[-<<<<+>>>>]<<<[->+>>+<<<
+]>>>[-<<<+>>>]<[<[->>+<<]>[-]]<[-]>>]<<<<[->>>+<<<]>[->>+<<]>+>[<->[-]
+]<[<<<<+++++>>>>[-]]<<<[->+>+<<]>>[-<<+>>]>++++[<+++++++++++>-]<<[->>>
++>+<<<<]>>>>[-<<<<+>>>>]<<<[->+>>+<<<]>>>[-<<<+>>>]<[<[->>+<<]>[-]]<[-
+]>>[[-]<<<<->-<[->>>+>+<<<<]>>>>[-<<<<+>>>>]<<<[->+>>+<<<]>>>[-<<<+>>>
+]<[<[->>+<<]>[-]]<[-]>>]<<<<[->>>+<<<]>[->>+<<]>+>[<->[-]]<[<<<<++++++
+>>>>[-]]<<<[->+>+<<]>>[-<<+>>]>+++++++[<+++++++++++++>-]<<[->>>+>+<<<<
+]>>>>[-<<<<+>>>>]<<<[->+>>+<<<]>>>[-<<<+>>>]<[<[->>+<<]>[-]]<[-]>>[[-]
+<<<<->-<[->>>+>+<<<<]>>>>[-<<<<+>>>>]<<<[->+>>+<<<]>>>[-<<<+>>>]<[<[->
+>+<<]>[-]]<[-]>>]<<<<[->>>+<<<]>[->>+<<]>+>[<->[-]]<[<<<<+++++++>>>>[-
+]]<<<[->+>+<<]>>[-<<+>>]>+++++++[<+++++++++++++>-]<++<[->>>+>+<<<<]>>>
+>[-<<<<+>>>>]<<<[->+>>+<<<]>>>[-<<<+>>>]<[<[->>+<<]>[-]]<[-]>>[[-]<<<<
+->-<[->>>+>+<<<<]>>>>[-<<<<+>>>>]<<<[->+>>+<<<]>>>[-<<<+>>>]<[<[->>+<<
+]>[-]]<[-]>>]<<<<[->>>+<<<]>[->>+<<]>+>[<->[-]]<[<<<<++++++++>>>>[-]]<
+<<<[->>+>+<<<]>>>[-<<<+>>>]<[<<<[->>>>>>>>>+<+<<<<<<<<]>>>>>>>>[-<<<<<
+<<<+>>>>>>>>]<<<<<<<[->>>>>>>>>+<<+<<<<<<<]>>>>>>>[-<<<<<<<+>>>>>>>]>[
+<[->>>>>+<<<<<]>[->>>>>+<<<<<]>[->>>>>+<<<<<]>>>+>-]>>[-]<[->+<]<<[[-<
+<<<<+>>>>>]<<<<<-]<<<<<<<<+>[-]>>[-]]<,[->+>+<<]>>[-<<+>>]>++++[<+++++
++++>-]<+<[->>+>>+<<<<]>>>>[-<<<<+>>>>]<<<[->>+>+<<<]>>>[-<<<+>>>]<<[>[
+->+<]<[-]]>[-]>[[-]<<<<->-<[->>+>>+<<<<]>>>>[-<<<<+>>>>]<<<[->>+>+<<<]
+>>>[-<<<+>>>]<<[>[->+<]<[-]]>[-]>]<<<<[->>+<<]>[->+<]>]<<<<<[-][->>>>>
+>>>>+<<<<<<+<<<]>>>[-<<<+>>>]>>>>>>[<[->>>>>+<<<<<]>[->>>>>+<<<<<]>>>>
++>-]>>[[-<+<+>>]<<[->>+<<]>[-<+>[<->[-]]]<[[-]<[->+>+<<]>>[-<<+>>]<<[[
+-<<<<<+>>>>>]>[-<<<<<+>>>>>]<<<<<<-]<<<<<<<<[-]>>>>>>>>>[-<<<<<<<<<+>>
+>>>>>>>]<<<<<<<<<<[->>>>>>>>>>+<+<<<<<<<<<]>>>>>>>>>[-<<<<<<<<<+>>>>>>
+>>>]>[<[->>>>>+<<<<<]>[->>>>>+<<<<<]>>>>+>-]>>>+<<<<[[-<<<<<+>>>>>]<<<
+<<-]<<<<<<<<+[->>>>>>>>>+<<<<<<+<<<]>>>[-<<<+>>>]>>>>>>[<[->>>>>+<<<<<
+]>[->>>>>+<<<<<]>>>>+>-][-]]>>[-<+<+>>]<<[->>+<<]>[-[-<+>[<->[-]]]]<[[
+-]<[->+>+<<]>>[-<<+>>]<<[[-<<<<<+>>>>>]>[-<<<<<+>>>>>]<<<<<<-]<<<<<<<<
+[-]>>>>>>>>>[-<<<<<<<<<+>>>>>>>>>]<<<<<<<<<<[->>>>>>>>>>+<+<<<<<<<<<]>
+>>>>>>>>[-<<<<<<<<<+>>>>>>>>>]>[<[->>>>>+<<<<<]>[->>>>>+<<<<<]>>>>+>-]
+>>>-<<<<[[-<<<<<+>>>>>]<<<<<-]<<<<<<<<+[->>>>>>>>>+<<<<<<+<<<]>>>[-<<<
++>>>]>>>>>>[<[->>>>>+<<<<<]>[->>>>>+<<<<<]>>>>+>-][-]]>>[-<+<+>>]<<[->
+>+<<]>[-[-[-<+>[<->[-]]]]]<[[-]<[->+>+<<]>>[-<<+>>]<<[[-<<<<<+>>>>>]>[
+-<<<<<+>>>>>]<<<<<<-]<<<<<<<<[-]>>>>>>>>>[-<<<<<<<<<+>>>>>>>>>]<<<<<<<
+<<<->+[->>>>>>>>>+<<<<<<+<<<]>>>[-<<<+>>>]>>>>>>[<[->>>>>+<<<<<]>[->>>
+>>+<<<<<]>>>>+>-][-]]>>[-<+<+>>]<<[->>+<<]>[-[-[-[-<+>[<->[-]]]]]]<[[-
+]<[->+>+<<]>>[-<<+>>]<<[[-<<<<<+>>>>>]>[-<<<<<+>>>>>]<<<<<<-]<<<<<<<<[
+-]>>>>>>>>>[-<<<<<<<<<+>>>>>>>>>]<<<<<<<<<<+>+[->>>>>>>>>+<<<<<<+<<<]>
+>>[-<<<+>>>]>>>>>>[<[->>>>>+<<<<<]>[->>>>>+<<<<<]>>>>+>-][-]]>>[-<+<+>
+>]<<[->>+<<]>[-[-[-[-[-<+>[<->[-]]]]]]]<[[-]<[->+>+<<]>>[-<<+>>]<<[[-<
+<<<<+>>>>>]>[-<<<<<+>>>>>]<<<<<<-]<<<<<<<<[-]>>>>>>>>>[-<<<<<<<<<+>>>>
+>>>>>]<<<<<<<<<<[->>>>>>>>>>+<+<<<<<<<<<]>>>>>>>>>[-<<<<<<<<<+>>>>>>>>
+>]>[<[->>>>>+<<<<<]>[->>>>>+<<<<<]>>>>+>-]>>>.<<<<[[-<<<<<+>>>>>]<<<<<
+-]<<<<<<<<+[->>>>>>>>>+<<<<<<+<<<]>>>[-<<<+>>>]>>>>>>[<[->>>>>+<<<<<]>
+[->>>>>+<<<<<]>>>>+>-][-]]>>[-<+<+>>]<<[->>+<<]>[-[-[-[-[-[-<+>[<->[-]
+]]]]]]]<[[-]<[->+>+<<]>>[-<<+>>]<<[[-<<<<<+>>>>>]>[-<<<<<+>>>>>]<<<<<<
+-]<<<<<<<<[-]>>>>>>>>>[-<<<<<<<<<+>>>>>>>>>]<<<<<<<<<<[->>>>>>>>>>+<+<
+<<<<<<<<]>>>>>>>>>[-<<<<<<<<<+>>>>>>>>>]>[<[->>>>>+<<<<<]>[->>>>>+<<<<
+<]>>>>+>-]>>>,<<<<[[-<<<<<+>>>>>]<<<<<-]<<<<<<<<+[->>>>>>>>>+<<<<<<+<<
+<]>>>[-<<<+>>>]>>>>>>[<[->>>>>+<<<<<]>[->>>>>+<<<<<]>>>>+>-][-]]>>[-<+
+<+>>]<<[->>+<<]>[-[-[-[-[-[-[-<+>[<->[-]]]]]]]]]<[[-]<[->+>+<<]>>[-<<+
+>>]<<[[-<<<<<+>>>>>]>[-<<<<<+>>>>>]<<<<<<-]<<<<<<<<[-]>>>>>>>>>[-<<<<<
+<<<<+>>>>>>>>>]<<<<<<<<<<[->>>>>>>>>>+<+<<<<<<<<<]>>>>>>>>>[-<<<<<<<<<
++>>>>>>>>>]>[<[->>>>>+<<<<<]>[->>>>>+<<<<<]>>>>+>-]>>>[-<<<+>+>>]<<[->
+>+<<]<<[[-<<<<<+>>>>>]>[-<<<<<+>>>>>]<<<<<<-]>[-<<<<<<+>>>>>>]>+<<<<<<
+<[>>>>>>>-<<<<<<<[-]]<<<[->>>>>>>>>+<<<<<<+<<<]>>>[-<<<+>>>]>>>>>>[<[-
+>>>>>+<<<<<]>[->>>>>+<<<<<]>[->>>>>+<<<<<]>>>+>-]>[[-]<+[<[->>>>>+<<<<
+<]>[->>>>>+<<<<<]>>>>+>>>[->>+<<<+>]<[->+<]>>>[-[-[-[-[-[-[-<<<+>>>[<<
+<->>>[-]]]]]]]]]<<<[<+>[-]]>[->>+<<<+>]<[->+<]>>>[-[-[-[-[-[-[-[-<<<+>
+>>[<<<->>>[-]]]]]]]]]]<<<[<->[-]]<]>[-]]<<[->>>>>+<<<<<]>>>>>+>[-]]>>[
+-<+<+>>]<<[->>+<<]>[-[-[-[-[-[-[-[-<+>[<->[-]]]]]]]]]]<[[-][-]<[->+>+<
+<]>>[-<<+>>]<<[[-<<<<<+>>>>>]>[-<<<<<+>>>>>]<<<<<<-]<<<<<<<<[-]>>>>>>>
+>>[-<<<<<<<<<+>>>>>>>>>]<<<<<<<<<<[->>>>>>>>>>+<+<<<<<<<<<]>>>>>>>>>[-
+<<<<<<<<<+>>>>>>>>>]>[<[->>>>>+<<<<<]>[->>>>>+<<<<<]>>>>+>-]>>>[-<<<+>
++>>]<<[->>+<<]<<[[-<<<<<+>>>>>]>[-<<<<<+>>>>>]<<<<<<-]>[-<<<<<<+>>>>>>
+]<<<<<<[->>>>>>>+<<<<<<<]<<<[->>>>>>>>>+<<<<<<+<<<]>>>[-<<<+>>>]>>>>>>
+[<[->>>>>+<<<<<]>[->>>>>+<<<<<]>[->>>>>+<<<<<]>>>+>-]>[[-]<+[<[-<<<<<+
+>>>>>]>[-<<<<<+>>>>>]<<<<<<->>>[->>+<<<+>]<[->+<]>>>[-[-[-[-[-[-[-<<<+
+>>>[<<<->>>[-]]]]]]]]]<<<[<->[-]]>[->>+<<<+>]<[->+<]>>>[-[-[-[-[-[-[-[
+-<<<+>>>[<<<->>>[-]]]]]]]]]]<<<[<+>[-]]<]>[-]]<<[->>>>>+<<<<<]>>>>>+>[
+-]]>>]
+
+Next, I wrote an optimizing BF to C compiler
+<http://www.iwriteiam.nl/Ha_bf2c_c.txt> that eliminates all of the
+add-to loops. For example, '[<<+>+>-]' is compiled into 'p[2] += p[0];
+p[1] += p[0]; p[0] = 0;'. It also removes all unnecessary `p--' and
+`p++' statements. The last project I embarked on, is a combined
+interpreter and compiler, which does even more optimizations. So far, I
+did not get very far, but you can have a look at it
+<http://www.iwriteiam.nl/Ha_bf_c.txt>. It supports the following command
+line options:
+
+  * -r: for interpreting a BF program
+  * -t: switching on trace mode during interpretation.
+  * -2c: for compiling to C. 
+
+One version of this program, I translated into JavaScript
+<http://www.iwriteiam.nl/JavaScript.html>, as part of the BF online
+<http://www.iwriteiam.nl/Ha_bf_online.html> page.
+
+#+END_EXAMPLE
+
+
+------------------------------------------------------------------------
+Brainf*** <http://www.iwriteiam.nl/Ha_BF.html>
+
+
+  BF <http://www.iwriteiam.nl/Ha_BF.html> is Turing-complete
+
+Alan Turing <http://www.wikipedia.org/wiki/Alan_Turing> came up with the
+idea for the so called Turing Machine
+<http://www.wikipedia.org/wiki/Turing_machine>, a very simplistic
+computing model, which yet is powerfull enough to calculate all possible
+function which can be calculated. A Turing Machine consists of an
+endless tape of cells, which each can contain any of a given set of
+symbols, a pointer pointing to one of the cells, and a certain finite
+state control. Depending on the function to be calculated the finite
+state control determines how the tape is manipulated. It does this by
+reading the symbol under the pointer, and decides what to do: write a
+new symbol on the current cell, move the tape to the left, or to the
+right, and what will be the next state.
+
+Each turing machine can be specified by the five elements:
+
+  * A finite set of symbols /A/, also called the alphabet.
+  * An initial symbol /a_init /, which each cell contains on
+    initialization.
+  * A finite set of states /S/.
+  * An initial state /s_init /.
+  * A final state /s_final /.
+  * A function f of state and symbols onto a tupple consisting of a new
+    state, a new symbol, and a movement. The movement can be one of
+    *right* and *left*. 
+
+Many interesting properties of Turing Machines have been proven so far.
+For example, that each Turing Machine can be transformed into a Turing
+Machine with a tape that is cut-off on one side, and endless on the
+other side. Or that every Turing machine can be transformed into a
+Turing machine with set of symbols contains just two symbols.
+
+A language is said to be 'Turing-complete'
+<http://www.wikipedia.org/wiki/Turing_complete>, if for each functions
+that can be calculated with a Turing Machine, it can be shown that there
+is a program in this language that performs the same function. There are
+basically three approaches to proof that a language is Turing-complete.
+These are:
+
+ 1. Show <#map> there is some mapping from each possible Turing machine
+    to a program in the language.
+ 2. Show <#UTM> that there is a program in the language that emulates a
+    Universal Turing Machine.
+ 3. Show <#URM> that the language is equivalent with (or a superset of)
+    a language that is known to be Turing-complete. 
+
+On the rest of the page, proofs of each of the above approaches will be
+given.
+
+------------------------------------------------------------------------
+
+
+  Translating Turing Machines to BF programs
+
+We can proof that BF is Turing-complete, if we can show for every
+possible Turing machine, there is an equivalent BF program. Of course,
+we only need to show that a Turing Machine with a tape limited on one
+side can be simulated. What we need is an algorithm, which given a
+Turing machine, specified by the six elements given above, generates a
+BF program, which will simulate the Turing machine.
+
+To achieve this, the set of symbols /A/ is mapped onto the numbers 0 to
+/n/-1, where /n/ equals the number of symbols, such that /a_init / maps
+onto zero. Likewise, the set of states /S/ is mapped onto the numbers 0
+to /m/-1, where /m/ equals the number of states, such that /s_init /
+maps onto zero, and /s_final / maps onto 1.
+
+To simulate a Turing machine, we need an array with unlimited length to
+represent the tape, a index into that array representing the position of
+the head, and the current state. To program this in BF we will need to
+assign these to some memory locations. The position of the head will be
+stored in memory location /head/, and the current state in the memory
+location /state/. Of course, some additional temporary memory locations
+will be needed. Using the terminology introduced on the page An
+introduction to programming in BF
+<http://www.iwriteiam.nl/Ha_bf_intro.html>, we need a program of the
+following form:
+
+#+BEGIN_EXAMPLE
+    /IsOne(state,t1)
+    Not(t1,t2,t3)
+    while(t2)/
+        /getarray(base,1,0,head,cursymbol)/
+
+        (some code which given the state and the cursymbol
+        assigns a value to newstate, newsymbol, and newhead)
+
+        /setarray(base,1,0,newhead,newsymbol)
+        zero(cursymbol)
+        zero(newsymbol)
+        zero(head) move(newhead,head,t1)
+        zero(state) move(newstate,state,t1) /
+
+        /IsOne(state,t1)
+        Not(t1,t2,t3)/
+
+    /wend(t2)/ 
+
+Now we only need to fill in the middle part of the loop. For each tupple
+in f we need to generate some code. This means that for each symbol /i/
+in the range 0 to /n/-1, and each state /j/ in the range 0 to /m/-1, we
+have to insert a line:
+
+   /map(state,head,cursymbol,
+       i,j,k,l,m,
+       newstate,newhead,newsymbol)/
+
+Where, given the tupple /f(s_i ,a_j )/, /k/ is the number representing
+the new state, /l/ is the number representing the new symbol, and /m/ is
+equal to 1 if the movement is *right* and equal to 0 if the movement is
+*left*. The procedure /map/ is defined as follows:
+
+  /map(state,head,cursymbol,
+      astate,asymbol,anewstate,anewsymbol,movement,
+      newstate,newhead,newsymbol)/
+  = /
+    copy(state,t1,t2)
+    const(t2,astate)
+    Equal(t1,t2,t3,t4,t5)
+    if(t3)
+      copy(cursymbol,t1,t2)
+      const(t2,asymbol)
+      Equal(t1,t2,t3,t4,t5)
+      if(t3)
+        const(newstate,anewstate)
+        const(newsymbol,anewsymbol)
+        copy(head,newhead,t1)
+        ifelse(movement,t1)
+          inc(newhead)
+        else(movement,t1)
+          dec(newhead)
+        endelse(t1)
+      endif(t3)
+    endif(t3)/
+
+In this code the expression /const(v,c)/ stands for the piece of code
+that fills the memory location /v/ with the value /c/. Now, we only need
+to assign real values to the variable representing the memory locations
+to arrive at the final BF program executing the given Turing machine.
+Note that memory location assigned to /base/ should be larger than all
+other memory locations used.
+
+
+  Universal Turing Machine
+
+The text of this section is based on
+this fully documented BF program
+<http://www.hevanet.com/cristofd/brainfuck/utm.b>
+written by Daniel B. Cristofani
+<http://www.hevanet.com/cristofd/brainfuck/>.
+
+A Universal Turing Machine (UTM) is a Turing machine that can simulate
+some Turing-complete computational model. By giving a BF program which
+simulates a particular UTM, we proof that BF is Turing-complete. The UTM
+that we implement here is taken from from Yurii Rogozhin's article
+/Small universal Turing machines/, in Theoretical Computer Science,
+November 1996 (volume 168 pgs 215-240). This UTM simulate a
+Turing-complete class of tag-systems. A tag-system transforms strings
+over an alphabet A = {a[1],a[2],...,a[n], a[n+1]} as follows: a positive
+integer m is chosen, and so is a function P that maps each a[i] for
+1<=i<=n to a string P(a[i]) over the alphabet A. Now:
+
+ 1. if the string being transformed has fewer than m elements, the whole
+    process stops now.
+ 2. m elements are removed from the beginning of the string
+ 3. call the first element removed a[k]; if k=n+1 the whole process
+    stops now.
+ 4. P(a[k]) is appended to the string.
+ 5. steps 1-5 are repeated. 
+
+The particular class of tag-systems this Turing machine simulates is the
+class where m = 2, the initial string has length at least 2, and all
+P(a[i]) where 1<=i<=n are of the form a[n]a[n]B[i] where B[i] is some
+string over the alphabet A (B[i] is the empty string if and only if i=n).
+
+The input for this Turing machine is mildly complex, and there is no
+error checking.
+
+  * The representation of a symbol a[i] from the alphabet A is a string
+    of 1s which is one element longer than twice the combined length of
+    all P(a[j]) where 1<=j<i.
+
+  * a value like P(a[i]) = a[n]a[n]a[w]a[x]...a[y]a[z] is represented as
+    follows:
+        b 1
+        b 111...(as many as required to represent a[z] as described above) b
+        b 111...(to represent a[y] as described above) b
+        .
+        .
+        .
+        b 111...(to represent a[x]) b
+        b 111...(to represent a[w]) b
+        b 111...(to represent a[n]) b
+        b 111...(as many as for a[n] as described above, MINUS the
+        number of 1s that represent a[i]; and no final b) 
+
+  * The function P is represented by listing all its outputs in the
+    order P(a[n]), P(a[n-1]),...,P(a[2]),P(a[1]). The representation of
+    P(a[n+1])=STOP is done for you.
+
+  * The initial string a[q]a[r]...a[s]a[t] to be transformed by the
+    tag-system is represented as
+        111...(as many as required to represent a[q] as above) c
+        111...(to represent a[r]) c
+        .
+        .
+        .
+        111...(to represent a[s]) c
+        111...(to represent a[t]; note that there is no final c.) 
+
+  * The input to this program is a function P as described above, then a
+    single b, then the initial string to be transformed. Run all the 1s,
+    bs, and cs together in one line with nothing between, followed by a
+    return.
+
+  * The output format, if the program terminates, is the same as the
+    input format for the initial string, and represents the final state
+    of the transformed string, with a final a[n+1] appended due to a
+    peculiarity of the Turing machine's algorithm. 
+
+
+        An example input string
+
+We take as an example the tag-system over the alphabet A = {a[1], a[2],
+a[3], a[4]}, where m = 2 and:
+P(a[1]) = a[3]a[3]a[2]a[1]a[4]
+P(a[2]) = a[3]a[3]a[1]
+P(a[3]) = a[3]a[3]
+P(a[4]) = STOP
+
+It meets the criteria above; and when applied to the initial string
+a[2]a[1]a[1] it gives:
+
+a[2]a[1]a[1]
+        a[1]a[3]a[3]a[1]
+                a[3]a[1]a[3]a[3]a[2]a[1]a[4]
+                        a[3]a[3]a[2]a[1]a[4]a[3]a[3]
+                                a[2]a[1]a[4]a[3]a[3]a[3]a[3]
+                                        a[4]a[3]a[3]a[3]a[3]a[3]a[3]a[1]
+                                                a[3]a[3]a[3]a[3]a[3]a[1]
+
+and then it's done.
+
+Now, the encoding:
+
+a[1] is 1
+a[2] is 11111111111
+a[3] is 11111111111111111
+a[4] is 111111111111111111111
+
+P(a[1]) is b1 b111111111111111111111b b1b b11111111111b b11111111111111111b b1111111111111111
+P(a[2]) is b1 b1b b11111111111111111b b111111
+P(a[3]) is b1 b11111111111111111b b
+
+the initial string is 11111111111c1c1
+
+and so the whole input is
+
+b1 b11111111111111111b b
+b1 b1b b11111111111111111b b111111
+b1 b111111111111111111111b b1b b11111111111b b11111111111111111b b1111111111111111
+b
+11111111111c1c1
+
+which when run together for input to the Turing machine becomes
+
+b1b11111111111111111bbb1b1bb11111111111111111bb111111b1b111111111111111111111bb1bb11111111111bb11111111111111111bb1111111111111111b11111111111c1c1
+
+
+        The Universal Turing Machine
+
+The Universal Turing Machine (UTM) implemented by the BF program is a
+four state, six symbol (namely: '1','b','<','>','0', and 'c') Turing
+machine. For those interested, the state table of the machine is given
+in the following table. Each cell contains a 5-tupple representing the
+current state, the symbol read, the symbol written, the action (L stands
+for move left, R stands for move right and H stands for halt), and the
+new state.
+
+11<L1	210R2	311R3	410R4
+1b>R1	2b>L3	3b<R4	4bcL2
+1>bL1	2><R2	3>bR3	4><R4
+1<0R1	2<>L2	3< H	4<
+10<L1	201L2	30cR1	40cL2
+1c0R4	2cbR2	3c1R1	4cbR4
+
+The initial state is 1, tape cells are set as per the input but with the
+termination code P(a[n+1])=STOP represented as a <b at the left end and
+all other cells on both sides (actually, only the right is needed)
+holding symbol 0, and the head is initially at the first 1 in the code
+for the initial string.
+
+The minimal test case b1b1bbb1c1c11111 represents the tag-system where
+P(a[1]) = a[1]a[1] and P(a[2]) = STOP, applied to the string
+a[1]a[1]a[2]. This runs for 518 steps of the Turing machine, exercising
+all 23 Turing machine instructions, before halting with the output
+string a[1].
+
+
+        BF program
+
+Below follows the BF program which implements the above Universal Turing
+Machine. (For a detailed explaination of this program, read the original
+source file <http://www.hevanet.com/cristofd/brainfuck/utm.b> by Daniel
+Cristofani.)
+
++++>++>>>+[>>,[>+++++<[[->]<<]<[>]>]>-[<<+++++>>-[<<---->>-[->]<]]
+<[<-<[<]+<+[>]<<+>->>>]<]<[<]>[-[>++++++<-]>[<+>-]+<<<+++>+>
+  [-
+    [<<+>->-
+      [<<[-]>>-
+        [<<++>+>-
+          [<<-->->>+++<-
+            [<<+>+>>--<-
+              [<<->->-
+                [<<++++>+>>+<-
+                  [>-<-
+                    [<<->->-
+                      [<<->>-
+                        [<<+++>>>-<-
+                          [<<---->>>++<-
+                            [<<++>>>+<-
+                              [>[-]<-
+                                [<<->>>+++<-
+                                  [<<->>>--<-
+                                    [<<++++>+>>+<-
+                                      [<<[-]>->>++<-
+                                        [<<+++++>+>>--<-
+                                          [<->>++<
+                                            [<<->>-
+]]]]]]]]]]]]]]]]]]]]]]<[->>[<<+>>-]<<<[>>>+<<<-]<[>>>+<<<-]]>>]
+>[-[---[-<]]>]>[+++[<+++++>--]>]+<++[[>+++++<-]<]>>[-.>]
+
+------------------------------------------------------------------------
+
+
+  URM is BF-complete
+
+URM stands for Universal Register Machine. The statement "URM is
+BF-complete", simply means that all possible URM programs have an
+equivalent BF program, if each memory cell may contain an arbitrary
+large number. Actually, the set of possible BF programs is much larger
+than the set of possible URM programs. You would hardly believe it, but
+URM is also Turing-complete, due to the fact that the registers can
+store infinite numbers, although the mapping from general Turing
+machines to URM is very, very complicated. Based on the ideas for a UTM
+in BF <#UTM>, Daniel Cristofani wrote a UTM for URM
+<http://www.hevanet.com/cristofd/brainfuck/urmutm.txt> using only five
+registers.) These fact combined, proof that BF is Turing-complete.
+
+The Universal Register Machine is a machine with a fixed number of
+characters, and it supports the following commands:
+
+  * a/n/ : increment register /n/
+  * s/n/ : decrement register /n/
+  * /x/; /y/ : execute command /x/ and then /y/
+  * (/x/)/n/ : execute command /x/ while register /n/ is nonzero
+  * .  : ("dot blank") halt the machine. 
+
+Examples URM programs are:
+
+  * Add register 3 to register 2:
+
+       (a2;s3)3.
+
+  * Multiply register 2 with register 3:
+
+       (a4;a5;s2)2; ((a2;s4)4; s3; (a1;a4;s5)5; (a5;s1)1)3.
+
+There is almost a one-to-one mapping from URM to BF. The a/n/ expression
+maps to +, the s/n/ expression maps to -, and the (/x/)/n/ expression
+maps to [/x/], of course preceded with the right amouth of > and < to
+move to the indicated memory location. The translation of the above two
+URM programs to BF are:
+
+  * Add register 3 to register 2:
+
+       >>>[<+>-]<<<
+
+  * Multiply register 2 with register 3:
+
+       >>[>>+>+<<<-]>[>[<<+>>-]<->>[<<<<+>>>+>-]<<<<[>>>>+<<<<-]>>]<<<
+
+It is possible to make context free grammars for both BF and URM, such
+that matching parse trees indicate equivalent programs. Such a grammar
+is given below:
+
+URM	BF
+/root/ = /S_1 /. 	/root/ = /S_1 /
+/S_n / = a/n/ 	/S_n / = +
+/S_n / = s/n/ 	/S_n / = -
+/S_n / = /S_n / ; /S_n / 	/S_n / = /S_n / /S_n /
+/S_n / = ( /S_n / )/n/ 	/S_n / = [ /S_n / ]
+/S_n / = /S_n+1 / 	/S_n / = > /S_n+1 / <
+/S_n / = /S_n-1 / 	/S_n / = < /S_n-1 / >
+
+Using this mapping, one can create another UTM in BF
+<http://www.hevanet.com/cristofd/brainfuck/urmutm.b> from the above
+mentioned UTM in URM.
+
+#+END_EXAMPLE
+
+
+
+Still, I feel that BF is far more elegant than URM, because it gives you
+more with less symbols. BF only needs the symbols "+", "-", "<", ">",
+"[", and "]", whereas URM needs "a", "s", ";", "(", ")", ".", and "0" to
+"9". Although, I have to admit, that BF programs will in general be
+longer than the equivalent URM program, and in most cases also more
+cryptic.
+
+#+BEGIN_EXAMPLE
+;compliant version, non-commands are ignored, but 104 bytes long
+
+[bits 16]  
+[org 0x100]  
+; assume bp=091e used  
+; assume di=fffe  
+; assume si=0100  
+; assume dx=cs (see here)  
+; assume cx=00ff  
+; assume bx=0000  
+; assume ax=0000 used (ah)  
+; assume sp=fffe  
+start:
+        mov al, code_nothing - start  
+code_start:
+        mov ch, 0x7f ; allow bigger programs  
+        mov bx, cx  
+        mov di, cx  
+        rep stosb  
+        mov bp, find_right + start - code_start ;cache loop head for smaller compiled programs  
+        jmp code_start_end  
+find_right:
+        pop si  
+        dec si  
+        dec si ;point to loop head  
+        cmp [bx], cl  
+        jne loop_right_end  
+loop_right:
+        lodsb  
+        cmp al, 0xD5 ; the "bp" part of "call bp" (because 0xFF is not unique, watch for additional '[')  
+        jne loop_left  
+        inc cx  
+loop_left:
+        cmp al, 0xC3 ; ret (watch for ']')  
+        jne loop_right  
+        loop loop_right ;all brackets matched when cx==0  
+        db 0x3c ;cmp al, xx (mask push)  
+loop_right_end:
+        push si  
+        lodsw ; skip "call" or dummy "dec" instruction, depending on context  
+        push si  
+code_sqright:
+        ret  
+code_dec:
+        dec byte [bx]  
+code_start_end:
+        db '$' ;end DOS string, also "and al, xx"  
+code_inc:
+        inc byte [bx]  
+        db '$'  
+code_right:
+        inc bx ;al -> 2  
+code_nothing:
+        db '$'  
+code_left:
+        dec bx  
+        db '$'  
+code_sqleft:
+        call bp  
+        db '$'  
+; create lookup table  
+real_start:
+        inc byte [bx+'<'] ;point to code_left  
+        dec byte [bx+'>'] ;point to code_right  
+        mov byte [bx+'['], code_sqleft - start  
+        mov byte [bx+']'], code_sqright - start  
+        lea sp, [bx+45+2] ;'+' + 4 (2b='+', 2c=',', 2d='-', 2e='.')  
+        push (code_dec - start) + (code_dot - start) * 256  
+        push (code_inc - start) + (code_comma - start) * 256  
+pre_write:
+        mov ah, code_start >> 8  
+        xchg dx, ax  
+; write  
+        mov ah, 9  
+        int 0x21  
+; read  
+code_comma:
+        mov dl, 0xff  
+        db 0x3d ; cmp ax, xxxx (mask mov)  
+code_dot:
+        mov dl, [bx]  
+        mov ah, 6  
+        int 0x21  
+        mov [bx], al  
+        db '$'  
+        db 0xff ; parameter for '$', doubles as test for zero  
+; switch  
+        xlatb  
+        jne pre_write  
+  ; next two lines can also be removed  
+  ; if the program ends with extra ']'  
+  ; and then we are at 100 bytes... :-)  
+the_end:
+        mov dl, 0xC3  
+        int 0x21  
+        int 0x20 
+#+END_EXAMPLE
+
+** Masque of the Red Death
+
+\includegraphics[width=40em]{erdsirreader/red.jpg}
+
+  The Masque of the Red Death
+
+THE "Red Death" had long devastated the country. No pestilence had ever
+been so fatal, or so hideous. Blood was its Avatar and its seal -- the
+redness and the horror of blood. There were sharp pains, and sudden
+dizziness, and then profuse bleeding at the pores, with dissolution. The
+scarlet stains upon the body and especially upon the face of the victim,
+were the pest ban which shut him out from the aid and from the sympathy
+of his fellow-men. And the whole seizure, progress and termination of
+the disease, were the incidents of half an hour.
+
+But the Prince Prospero was happy and dauntless and sagacious. When his
+dominions were half depopulated, he summoned to his presence a thousand
+hale and light-hearted friends from among the knights and dames of his
+court, and with these retired to the deep seclusion of one of his
+castellated abbeys. This was an extensive and magnificent structure, the
+creation of the prince's own eccentric yet august taste. A strong and
+lofty wall girdled it in. This wall had gates of iron. The courtiers,
+having entered, brought furnaces and massy hammers and welded the bolts.
+They resolved to leave means neither of ingress or egress to the sudden
+impulses of despair or of frenzy from within. The abbey was amply
+provisioned. With such precautions the courtiers might bid defiance to
+contagion. The external world could take care of itself. In the meantime
+it was folly to grieve, or to think. The prince had provided all the
+appliances of pleasure. There were buffoons, there were improvisatori,
+there were ballet-dancers, there were musicians, there was Beauty, there
+was wine. All these and security were within. Without was the "Red Death."
+
+It was toward the close of the fifth or sixth month of his seclusion,
+and while the pestilence raged most furiously abroad, that the Prince
+Prospero entertained his thousand friends at a masked ball of the most
+unusual magnificence.
+
+It was a voluptuous scene, that masquerade. But first let me tell of the
+rooms in which it was held. There were seven -- an imperial suite. In
+many palaces, however, such suites form a long and straight vista, while
+the folding doors slide back nearly to the walls on either hand, so that
+the view of the whole extent is scarcely impeded. Here the case was very
+different; as might have been expected from the duke's love of the
+bizarre. The apartments were so irregularly disposed that the vision
+embraced but little more than one at a time. There was a sharp turn at
+every twenty or thirty yards, and at each turn a novel effect. To the
+right and left, in the middle of each wall, a tall and narrow Gothic
+window looked out upon a closed corridor which pursued the windings of
+the suite. These windows were of stained glass whose color varied in
+accordance with the prevailing hue of the decorations of the chamber
+into which it opened. That at the eastern extremity was hung, for
+example, in blue -- and vividly blue were its windows. The second
+chamber was purple in its ornaments and tapestries, and here the panes
+were purple. The third was green throughout, and so were the casements.
+The fourth was furnished and lighted with orange -- the fifth with white
+-- the sixth with violet. The seventh apartment was closely shrouded in
+black velvet tapestries that hung all over the ceiling and down the
+walls, falling in heavy folds upon a carpet of the same material and
+hue. But in this chamber only, the color of the windows failed to
+correspond with the decorations. The panes here were scarlet -- a deep
+blood color. Now in no one of the seven apartments was there any lamp or
+candelabrum, amid the profusion of golden ornaments that lay scattered
+to and fro or depended from the roof. There was no light of any kind
+emanating from lamp or candle within the suite of chambers. But in the
+corridors that followed the suite, there stood, opposite to each window,
+a heavy tripod, bearing a brazier of fire that protected its rays
+through the tinted glass and so glaringly illumined the room. And thus
+were produced a multitude of gaudy and fantastic appearances. But in the
+western or black chamber the effect of the fire-light that streamed upon
+the dark hangings through the blood-tinted panes, was ghastly in the
+extreme, and produced so wild a look upon the countenances of those who
+entered, that there were few of the company bold enough to set foot
+within its precincts at all.
+
+It was in this apartment, also, that there stood against the western
+wall, a gigantic clock of ebony. Its pendulum swung to and fro with a
+dull, heavy, monotonous clang; and when the minute-hand made the circuit
+of the face, and the hour was to be stricken, there came from the brazen
+lungs of the clock a sound which was clear and loud and deep and
+exceedingly musical, but of so peculiar a note and emphasis that, at
+each lapse of an hour, the musicians of the orchestra were constrained
+to pause, momentarily, in their performance, to hearken to the sound;
+and thus the waltzers perforce ceased their evolutions; and there was a
+brief disconcert of the whole gay company; and, while the chimes of the
+clock yet rang, it was observed that the giddiest grew pale, and the
+more aged and sedate passed their hands over their brows as if in
+confused reverie or meditation. But when the echoes had fully ceased, a
+light laughter at once pervaded the assembly; the musicians looked at
+each other and smiled as if at their own nervousness and folly, and made
+whispering vows, each to the other, that the next chiming of the clock
+should produce in them no similar emotion; and then, after the lapse of
+sixty minutes, (which embrace three thousand and six hundred seconds of
+the Time that flies,) there came yet another chiming of the clock, and
+then were the same disconcert and tremulousness and meditation as before.
+
+But, in spite of these things, it was a gay and magnificent revel. The
+tastes of the duke were peculiar. He had a fine eye for colors and
+effects. He disregarded the decora of mere fashion. His plans were bold
+and fiery, and his conceptions glowed with barbaric lustre. There are
+some who would have thought him mad. His followers felt that he was not.
+It was necessary to hear and see and touch him to be sure that he was not.
+
+He had directed, in great part, the moveable embellishments of the seven
+chambers, upon occasion of this great fete; and it was his own guiding
+taste which had given character to the masqueraders. Be sure they were
+grotesque. There were much glare and glitter and piquancy and phantasm
+-- much of what has been since seen in "Hernani." There were arabesque
+figures with unsuited limbs and appointments. There were delirious
+fancies such as the madman fashions. There was much of the beautiful,
+much of the wanton, much of the bizarre, something of the terrible, and
+not a little of that which might have excited disgust. To and fro in the
+seven chambers there stalked, in fact, a multitude of dreams. And these
+-- the dreams -- writhed in and about, taking hue from the rooms, and
+causing the wild music of the orchestra to seem as the echo of their
+steps. And, anon, there strikes the ebony clock which stands in the hall
+of the velvet. And then, for a moment, all is still, and all is silent
+save the voice of the clock. The dreams are stiff-frozen as they stand.
+But the echoes of the chime die away -- they have endured but an instant
+-- and a light, half-subdued laughter floats after them as they depart.
+And now again the music swells, and the dreams live, and writhe to and
+fro more merrily than ever, taking hue from the many-tinted windows
+through which stream the rays from the tripods. But to the chamber which
+lies most westwardly of the seven, there are now none of the maskers who
+venture; for the night is waning away; and there flows a ruddier light
+through the blood-colored panes; and the blackness of the sable drapery
+appals; and to him whose foot falls upon the sable carpet, there comes
+from the near clock of ebony a muffled peal more solemnly emphatic than
+any which reaches their ears who indulge in the more remote gaieties of
+the other apartments.
+
+But these other apartments were densely crowded, and in them beat
+feverishly the heart of life. And the revel went whirlingly on, until at
+length there commenced the sounding of midnight upon the clock. And then
+the music ceased, as I have told; and the evolutions of the waltzers
+were quieted; and there was an uneasy cessation of all things as before.
+But now there were twelve strokes to be sounded by the bell of the
+clock; and thus it happened, perhaps, that more of thought crept, with
+more of time, into the meditations of the thoughtful among those who
+revelled. And thus, too, it happened, perhaps, that before the last
+echoes of the last chime had utterly sunk into silence, there were many
+individuals in the crowd who had found leisure to become aware of the
+presence of a masked figure which had arrested the attention of no
+single individual before. And the rumor of this new presence having
+spread itself whisperingly around, there arose at length from the whole
+company a buzz, or murmur, expressive of disapprobation and surprise --
+then, finally, of terror, of horror, and of disgust.
+
+In an assembly of phantasms such as I have painted, it may well be
+supposed that no ordinary appearance could have excited such sensation.
+In truth the masquerade license of the night was nearly unlimited; but
+the figure in question had out-Heroded Herod, and gone beyond the bounds
+of even the prince's indefinite decorum. There are chords in the hearts
+of the most reckless which cannot be touched without emotion. Even with
+the utterly lost, to whom life and death are equally jests, there are
+matters of which no jest can be made. The whole company, indeed, seemed
+now deeply to feel that in the costume and bearing of the stranger
+neither wit nor propriety existed. The figure was tall and gaunt, and
+shrouded from head to foot in the habiliments of the grave. The mask
+which concealed the visage was made so nearly to resemble the
+countenance of a stiffened corpse that the closest scrutiny must have
+had difficulty in detecting the cheat. And yet all this might have been
+endured, if not approved, by the mad revellers around. But the mummer
+had gone so far as to assume the type of the Red Death. His vesture was
+dabbled in blood -- and his broad brow, with all the features of the
+face, was besprinkled with the scarlet horror.
+
+When the eyes of Prince Prospero fell upon this spectral image (which
+with a slow and solemn movement, as if more fully to sustain its role,
+stalked to and fro among the waltzers) he was seen to be convulsed, in
+the first moment with a strong shudder either of terror or distaste;
+but, in the next, his brow reddened with rage.
+
+"Who dares?" he demanded hoarsely of the courtiers who stood near him --
+"who dares insult us with this blasphemous mockery? Seize him and unmask
+him -- that we may know whom we have to hang at sunrise, from the
+battlements!"
+
+It was in the eastern or blue chamber in which stood the Prince Prospero
+as he uttered these words. They rang throughout the seven rooms loudly
+and clearly -- for the prince was a bold and robust man, and the music
+had become hushed at the waving of his hand.
+
+It was in the blue room where stood the prince, with a group of pale
+courtiers by his side. At first, as he spoke, there was a slight rushing
+movement of this group in the direction of the intruder, who at the
+moment was also near at hand, and now, with deliberate and stately step,
+made closer approach to the speaker. But from a certain nameless awe
+with which the mad assumptions of the mummer had inspired the whole
+party, there were found none who put forth hand to seize him; so that,
+unimpeded, he passed within a yard of the prince's person; and, while
+the vast assembly, as if with one impulse, shrank from the centres of
+the rooms to the walls, he made his way uninterruptedly, but with the
+same solemn and measured step which had distinguished him from the
+first, through the blue chamber to the purple -- through the purple to
+the green -- through the green to the orange -- through this again to
+the white -- and even thence to the violet, ere a decided movement had
+been made to arrest him. It was then, however, that the Prince Prospero,
+maddening with rage and the shame of his own momentary cowardice, rushed
+hurriedly through the six chambers, while none followed him on account
+of a deadly terror that had seized upon all. He bore aloft a drawn
+dagger, and had approached, in rapid impetuosity, to within three or
+four feet of the retreating figure, when the latter, having attained the
+extremity of the velvet apartment, turned suddenly and confronted his
+pursuer. There was a sharp cry -- and the dagger dropped gleaming upon
+the sable carpet, upon which, instantly afterwards, fell prostrate in
+death the Prince Prospero. Then, summoning the wild courage of despair,
+a throng of the revellers at once threw themselves into the black
+apartment, and, seizing the mummer, whose tall figure stood erect and
+motionless within the shadow of the ebony clock, gasped in unutterable
+horror at finding the grave-cerements and corpse-like mask which they
+handled with so violent a rudeness, untenanted by any tangible form.
+
+And now was acknowledged the presence of the Red Death. He had come like
+a thief in the night. And one by one dropped the revellers in the
+blood-bedewed halls of their revel, and died each in the despairing
+posture of his fall. And the life of the ebony clock went out with that
+of the last of the gay. And the flames of the tripods expired. And
+Darkness and Decay and the Red Death held illimitable dominion over all.
+
+** Langton's ant
+
+\includegraphics[width=40em]{erdsirreader/LangtonsAnt-nColor_RRLLLRLLLRRR_32734.png}
+
+\includegraphics[width=40em]{erdsirreader/LangtonsAnt.png}
+
+** Wireworld
+
+\includepdf[pages=-]{erdsirreader/wireworld.pdf}
+
+
+* Further reading
+
+Bernhardt, Chris. 2016. Turing's Vision: The Birth of Computer Science. 
+
+Matt J. Keeling & Pejman Rohani. 2007. Modeling Infectious Diseases in Humans and Animals.
+
+Parikka, Jussi. 2007. Digital Contagions.
+
+
+
